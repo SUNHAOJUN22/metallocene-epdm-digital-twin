@@ -24,6 +24,7 @@
 - Re-ran the user-requested V6.5 traversal at 2026-05-22 15:12: project file/risk scans, repo-native math gates, performance/UI checks, quality gate, release gate, Streamlit HTTP verification and Browser page inspection stayed green on the unchanged V6.4 / 0.7.4 formal baseline.
 - Re-ran the V6.5 boundary/usability pass at 2026-05-22 15:42: math/stability gates, direct-reference coverage, report/repro/UI contracts and Browser navigation checks stayed green; no runtime fix was needed, while repeated report/repro audit-context assembly remains a P3 optimization target.
 - Prepared the project for first GitHub publication to `SUNHAOJUN22/metallocene-epdm-digital-twin` by initializing a local Git repository and expanding `.gitignore` to keep generated smoke outputs, local SQLite data, logs, rendered documentation images and transient artifacts out of source control.
+- Rewrote `README.md` into a standard industrial-software landing document with concise product scope, quality baseline, architecture, installation, operation, validation contract, data/evidence policy, report/reproducibility expectations, limitations and roadmap; the detailed generated manuals remain linked as supporting references.
 - No P0/P1/P2 defect was found, so no model rewrite or version-contract bump was applied.
 - Added `docs/V6_5_CHANGELOG.md` and `docs/V6_5_HALF_HOUR_AUDIT.md` to record test facts, remaining P3 risks and V6.6 recommendations.
 

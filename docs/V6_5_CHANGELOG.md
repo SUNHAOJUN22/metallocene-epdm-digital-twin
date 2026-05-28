@@ -808,3 +808,36 @@
 
 ### Remaining Risk
 - GitHub CLI 未安装，最终 push 可能依赖本机 Git Credential Manager 或 HTTPS 认证弹窗；如果认证失败，需要安装 `gh` 并执行 `gh auth login` 后重试。
+
+## 2026-05-28 09:57 - V6.5 automated update 25
+
+### Change
+- 修改文件：`README.md`、`CHANGELOG.md`、`docs/V6_5_CHANGELOG.md`
+- 新增文件：无
+- 自动刷新文件：无
+
+### Reason
+- 修改原因：GitHub 首页 README 原先是自动展开式全量技术手册，包含大量逐文件函数清单，不符合工业软件公开仓库的标准阅读结构；改为产品级 README，并将详细手册作为 supporting references 链接保留。
+
+### Mathematical / Engineering Logic
+- 守恒影响：仅修改文档；未修改 flowsheet、ResidualSystem、solver、flash、heat balance、recycle、ODE/DAE 或 report runtime。
+- 单位影响：仅文档化 unit-safe contract；未修改 DimensionedValue、unit adapter 或 conversion trace。
+- residual 影响：仅文档化 residual acceptance 和 correction 边界；未修改 severity、tolerance、fallback 或 residual-aware decision。
+- benchmark 影响：仅文档化 evidence source ranking 和 critical evidence requirements；未修改 benchmark data、source registry 或 confidence scoring。
+- validity 影响：仅文档化 validity/out-of-validity 使用边界；未修改 validity envelope 或 property runtime selector。
+
+### Verification
+- 已运行命令：
+  - `Get-Content -Raw pyproject.toml`
+  - `Get-Content -Raw epdm_sim\__init__.py`
+  - `Get-ChildItem epdm_sim\pages -File`
+  - `git diff --check`
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe scripts\release_gate.py`
+- 测试结果：
+  - 文档版本与 package metadata 保持 `V6.4 / 0.7.4`、`0.7.4`。
+  - README 不再包含自动生成的逐文件 API 长清单，改为标准工业软件结构。
+  - README 链接目标存在，`git diff --check` 通过。
+  - release gate 通过：`py_compile`、`pytest`、`smoke_app`、`auto_functional_audit`、`function_inventory_audit`、`performance_profile`、`ui_e2e_smoke`、`ui_e2e_workflow`、`static_contracts` 均 PASS。
+
+### Remaining Risk
+- 本次是文档结构重写，运行时代码未变更；后续如继续扩展 README，可考虑增加架构图和部署拓扑图。
