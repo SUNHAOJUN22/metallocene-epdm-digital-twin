@@ -841,3 +841,32 @@
 
 ### Remaining Risk
 - 本次是文档结构重写，运行时代码未变更；后续如继续扩展 README，可考虑增加架构图和部署拓扑图。
+
+## 2026-05-28 10:05 - V6.5 automated update 26
+
+### Change
+- 修改文件：`README.md`、`CHANGELOG.md`、`docs/V6_5_CHANGELOG.md`
+- 新增文件：`README.zh-CN.md`
+- 自动刷新文件：无
+
+### Reason
+- 修改原因：GitHub README 需要支持英文/中文两个版本，并能在文件顶部互相切换；英文版继续作为默认仓库首页，中文版提供完整对应内容。
+
+### Mathematical / Engineering Logic
+- 守恒影响：仅文档国际化；未修改 flowsheet、ResidualSystem、solver、flash、heat balance、recycle、ODE/DAE 或 report runtime。
+- 单位影响：仅翻译并保留 unit-safe contract；未修改单位换算或入口适配。
+- residual 影响：仅翻译 residual acceptance、correction 边界和 heavy-task 契约；未修改 residual 逻辑。
+- benchmark 影响：仅翻译 evidence source ranking、critical evidence 字段和 data policy；未修改 benchmark registry 或 confidence scoring。
+- validity 影响：仅翻译 out-of-validity 和 evidence 使用边界；未修改 validity envelope 或 property runtime selector。
+
+### Verification
+- 已运行命令：
+  - `git diff --check`
+  - README link-target existence check for English and Chinese documentation references
+- 测试结果：
+  - 英文 README 顶部包含 `Language: **English** | [中文](README.zh-CN.md)`。
+  - 中文 README 顶部包含 `语言：[English](README.md) | **中文**`。
+  - 英文和中文 README 引用的本地文档目标均存在。
+
+### Remaining Risk
+- 本次仅修改 README 国际化文档，不修改 runtime；完整 release gate 可按常规 pre-push 命令另行运行。

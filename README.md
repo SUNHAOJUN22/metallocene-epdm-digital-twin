@@ -1,5 +1,7 @@
 # Metallocene EPDM Digital Twin
 
+Language: **English** | [中文](README.zh-CN.md)
+
 Industrial research software for metallocene EPM/EPDM solution-polymerization modeling, residual-aware process simulation, model governance, report generation, and reproducible validation.
 
 Current formal release: **V6.4 / 0.7.4**
@@ -293,6 +295,7 @@ Primary documents:
 
 Detailed generated/manual references:
 
+- [README.zh-CN.md](README.zh-CN.md)
 - [README_Manual_And_Tech.md](README_Manual_And_Tech.md)
 - [README_Deep_Technical.md](README_Deep_Technical.md)
 - [README_technical.md](README_technical.md)
