@@ -1,6 +1,6 @@
 PYTHON ?= python
 
-.PHONY: audit check-env lint typecheck test test-unit test-integration test-e2e test-science test-property test-fuzz test-regression test-security test-performance test-build coverage quality-gate validate benchmark report repair-common continuous-improve
+.PHONY: audit check-env lint typecheck test test-unit test-integration test-e2e test-science test-property test-fuzz test-regression test-security test-performance test-build coverage quality-gate validate benchmark report repair-common continuous-improve professional-skill-qa
 
 audit:
 	$(PYTHON) scripts/dev_tasks.py audit-project
@@ -68,3 +68,6 @@ repair-common:
 
 continuous-improve:
 	$(PYTHON) scripts/dev_tasks.py continuous-improve
+
+professional-skill-qa:
+	$(PYTHON) scripts/dev_tasks.py professional-skill-qa

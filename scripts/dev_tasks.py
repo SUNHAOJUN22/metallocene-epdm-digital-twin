@@ -174,6 +174,13 @@ def task_test_performance() -> int:
     return 0 if result.passed else 1
 
 
+def task_professional_skill_qa() -> int:
+    """Run executable QA for workstreams replaced by professional skills."""
+    result = _run([sys.executable, "scripts/professional_skill_qa.py"], "professional-skill-qa")
+    print(result.detail)
+    return 0 if result.passed else 1
+
+
 def task_test_all() -> int:
     for func in (task_test_build, task_test_unit, task_test_integration, task_test_e2e, task_test_science, task_test_units, task_test_security):
         code = func()
@@ -560,6 +567,7 @@ TASKS: dict[str, Callable[[], int]] = {
     "test-typecheck": task_test_typecheck,
     "test-security": task_test_security,
     "test-performance": task_test_performance,
+    "professional-skill-qa": task_professional_skill_qa,
     "quality-gate": task_quality_gate,
     "repair-common": task_repair_common,
     "generate-test-report": task_generate_test_report,

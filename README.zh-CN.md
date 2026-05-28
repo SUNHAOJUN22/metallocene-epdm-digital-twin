@@ -210,6 +210,14 @@ python scripts\ui_e2e_smoke.py
 python scripts\ui_e2e_workflow.py
 ```
 
+运行可执行的专业 skill 外围 QA：
+
+```powershell
+python scripts\dev_tasks.py professional-skill-qa
+```
+
+该命令检查适合由专业 workflow skill 接管的外围 artifact：Excel 报告结构、Word 报告内容、UI 契约 artifact 和 GitHub workflow readiness。它不会替代科学内核门禁。
+
 运行完整质量和发布门禁：
 
 ```powershell
@@ -323,12 +331,14 @@ Benchmark 和 calibration evidence 按来源置信度分级：
 - 不掩盖 NaN、infinite、负物性或 critical residual；
 - 不用通用工具替换运行时数学、物理或验证逻辑；
 - 修改运行时行为或 release gate 时必须更新 changelog 和质量文档。
+- 对适合专业 workflow skill 替换的 UI/report/GitHub artifact 检查，使用 `professional-skill-qa`。
 
 推荐 pre-push 命令：
 
 ```powershell
 python scripts\dev_tasks.py quality-gate
 python scripts\release_gate.py
+python scripts\dev_tasks.py professional-skill-qa
 ```
 
 ---

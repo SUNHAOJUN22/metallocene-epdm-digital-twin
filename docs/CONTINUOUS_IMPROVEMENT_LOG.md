@@ -454,3 +454,9 @@
 - UI action registry usability checks remained green with no duplicate action signature, missing feedback, heavy export action or missing TaskService target reported.
 - P3 observation: `repro_package` intentionally exports many audit snapshots and currently rebuilds residual-system context repeatedly while assembling them. Correctness is release-gated; consolidation is a scoped export-performance/readability follow-up, not a P0/P1/P2 defect.
 
+## 2026-05-28 10:37:54
+
+- Generated standardized documentation set.
+- Latest callable direct coverage: [{'gate': 'module_import', 'passed': True, 'detail': '254/254 modules imported'}, {'gate': 'callable_direct_reference', 'passed': True, 'detail': '972/972 public callables directly referenced'}, {'gate': 'function_matrix', 'passed': True, 'detail': '972 callable rows with UI/API/DB/file/science risk tags'}].
+- Recommended next step: work down `function_inventory_uncovered_top20.csv`.
+

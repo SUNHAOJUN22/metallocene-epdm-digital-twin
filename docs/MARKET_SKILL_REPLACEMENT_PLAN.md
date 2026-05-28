@@ -71,6 +71,7 @@ These newly installed skills may require restarting Codex before they appear in 
 | UI action registry usability | `browser` for visual inspection, repo tests for contract | `ui_action_usability_gate`, `tests/test_ui_action_usability.py` |
 | Excel report audit | `spreadsheets` | `excel_required_sheets`, `excel_sheet_name_compatibility_gate` |
 | Word report audit | `documents` | `word_export_nonempty` and rendered report QA |
+| Executable peripheral QA harness | `spreadsheets`, `documents`, `browser/playwright`, `github/yeet` | `python scripts\dev_tasks.py professional-skill-qa` |
 | Repro package audit | no direct market replacement; use repo gates | `report_repro_industrial_audit_gate` |
 | GitHub PR release workflow | `github` | repo-local `release_gate.py` before PR |
 | OpenAI agent/app integration design | `openai-docs` | no code change until official docs are checked |
@@ -126,6 +127,26 @@ For future work, call skills explicitly in the user prompt:
 ```
 
 For math-core development, continue using repo-native tests and release gates first. Add market skills only for UI/report/document/GitHub/OpenAI-facing workstreams.
+
+## Executable Replacement Command
+
+The eligible replacement surface is now backed by a repo command:
+
+```powershell
+python scripts\dev_tasks.py professional-skill-qa
+```
+
+This command does not call or replace the runtime math kernel. It checks the same artifact classes that professional skills own:
+
+- Excel workbook inventory and formula-error scan, mirroring the Spreadsheets skill.
+- Word report content/table audit, mirroring the Documents skill.
+- UI contract artifact audit, complementing Browser/Playwright inspection.
+- GitHub remote/readiness audit, complementing GitHub/yeet workflows.
+
+It writes:
+
+- `tmp_smoke_outputs/professional_skill_qa.json`
+- `tmp_smoke_outputs/professional_skill_qa.csv`
 
 ## Actual Replacement Audit
 

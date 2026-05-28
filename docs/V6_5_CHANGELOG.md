@@ -870,3 +870,40 @@
 
 ### Remaining Risk
 - 本次仅修改 README 国际化文档，不修改 runtime；完整 release gate 可按常规 pre-push 命令另行运行。
+
+## 2026-05-28 10:34 - V6.5 automated update 27
+
+### Change
+- 修改文件：`scripts/dev_tasks.py`、`Makefile`、`README.md`、`README.zh-CN.md`、`CHANGELOG.md`、`docs/MARKET_SKILL_REPLACEMENT_PLAN.md`、`docs/MARKET_SKILL_ACTUAL_REPLACEMENT_AUDIT.md`、`docs/V6_5_CHANGELOG.md`
+- 新增文件：`scripts/professional_skill_qa.py`、`tests/test_professional_skill_qa.py`
+- 自动刷新文件：`tmp_smoke_outputs/professional_skill_qa.json`、`tmp_smoke_outputs/professional_skill_qa.csv`
+
+### Reason
+- 修改原因：用户要求“该替换的部分应该替换掉”。本轮将适合专业 workflow skill 接管的外围 QA 从文档计划推进为可执行命令：Excel 报告 QA、Word 报告 QA、UI contract artifact QA 和 GitHub workflow readiness QA。
+
+### Mathematical / Engineering Logic
+- 守恒影响：未修改 runtime 数理内核；ResidualSystem、solver、flash、heat balance、recycle、ODE/DAE 仍由 repo-native tests/release_gate 验证。
+- 单位影响：未修改 unit adapter 或 DimensionedValue；Excel QA 仅检查 `unit_conversion_trace` 等报告 artifact 的存在与 workbook 健康性。
+- residual 影响：未修改 residual severity、tolerance、correction 或 fallback；professional-skill QA 只验证 residual/report artifact，不替代 residual acceptance gate。
+- benchmark 影响：未修改 benchmark registry 或 evidence scoring；Excel/Word QA 检查 benchmark/evidence 内容呈现边界。
+- validity 影响：未修改 validity envelope 或 property runtime selector；UI/GitHub/Word/Excel QA 不允许绕过 outside-validity 和 residual-critical 决策规则。
+
+### Verification
+- 已运行命令：
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe -m pytest -q tests\test_professional_skill_qa.py`
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe scripts\dev_tasks.py professional-skill-qa`
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe scripts\release_gate.py`
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe scripts\dev_tasks.py professional-skill-qa`
+- 测试结果：
+  - `tests/test_professional_skill_qa.py`: 3 passed。
+  - `professional-skill-qa`: PASS。
+  - `release_gate`: PASS；`py_compile`、`pytest`、`smoke_app`、`auto_functional_audit`、`function_inventory_audit`、`performance_profile`、`ui_e2e_smoke`、`ui_e2e_workflow`、`static_contracts` 全部通过。
+  - `pytest`: 349 passed，1 warning（测试中故意构造 Excel 长 sheet name 用于 negative assertion）。
+  - `function_inventory_audit`: 254/254 modules imported，972/972 public callable direct references。
+  - Excel QA: 173 sheets, required sheets present, no formula-error tokens。
+  - Word QA: 17 paragraphs, 11 tables, 620 table cells, risk/residual/governance content present。
+  - UI contract QA: 15 pages, 18 manual actions, no missing task mappings, no heavy export actions。
+  - GitHub QA: GitHub origin present and remote `main` exists。
+
+### Remaining Risk
+- Full GitHub `gh`/PR automation remains pending because GitHub CLI is not installed. Runtime math/physics modules remain intentionally not replaced by generic skills.

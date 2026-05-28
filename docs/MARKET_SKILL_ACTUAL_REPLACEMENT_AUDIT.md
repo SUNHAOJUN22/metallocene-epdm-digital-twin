@@ -55,7 +55,7 @@ These are professional workflow skills. They extend the replacement surface for 
 | Streamlit UI inspection | `browser` | actually used | Opened `http://127.0.0.1:8501/`, page title `Metallocene EPDM Digital Twin`, navigation and controls visible. |
 | Excel report QA | `spreadsheets` | actually used | Imported `tmp_smoke_outputs/smoke.xlsx`; 173 sheets; 0 sheet names over 31 characters; required sheets present; formula-error search matched 0 entries. |
 | Word report QA | `documents` | actually used | Rendered `tmp_smoke_outputs/smoke.docx` into 12 PNG pages with artifact-tool renderer. |
-| GitHub PR/CI | `github` | not used | Current project path is not a git repository, so PR/CI skill cannot be meaningfully applied here. |
+| GitHub PR/CI | `github` / `yeet` | partially replaced | Project is now a Git repository published to `SUNHAOJUN22/metallocene-epdm-digital-twin`; full `gh`/PR workflow remains pending because GitHub CLI is not installed locally. |
 | OpenAI API/Agents lookup | `openai-docs` | not used | No OpenAI API implementation task was requested in this replacement audit. |
 | Slide deck generation | `presentations` | not used | No presentation artifact was requested in this replacement audit. |
 | Browser-flow automation extension | `playwright`, `playwright-interactive` | installed, pending restart/use | Installed from market for future deeper UI flow and screenshot validation. |
@@ -187,3 +187,28 @@ Strict conclusion:
 - PDF: no PDF report artifact was present in `tmp_smoke_outputs`; PDF QA was not applicable.
 
 Conclusion: professional skills continue to cover eligible peripheral QA. They do not replace runtime math/physics logic.
+
+## 2026-05-28 Executable Replacement Harness
+
+The eligible peripheral replacement surface is now backed by an executable repo command:
+
+```powershell
+python scripts\dev_tasks.py professional-skill-qa
+```
+
+Command result:
+
+- `excel_report_qa` via `spreadsheets`: PASS; latest smoke workbook has 173 sheets, no sheet names over 31 characters, required audit sheets present and no formula-error tokens.
+- `word_report_qa` via `documents`: PASS; latest smoke Word report has nonempty paragraphs, 11 tables, 620 table text cells and risk/residual/governance content.
+- `ui_browser_contract_qa` via `browser/playwright`: PASS; UI artifacts report 15 registered pages, 18 manual actions, no missing task mappings and no heavy export actions.
+- `github_workflow_qa` via `github/yeet`: PASS; repository has GitHub origin `https://github.com/SUNHAOJUN22/metallocene-epdm-digital-twin.git` and remote `main` exists.
+
+New artifacts:
+
+- `tmp_smoke_outputs/professional_skill_qa.json`
+- `tmp_smoke_outputs/professional_skill_qa.csv`
+
+Interpretation:
+
+- The parts that should be replaced are now replaced at the workflow level and have a repeatable command.
+- Math/physics runtime code remains repo-native by design.

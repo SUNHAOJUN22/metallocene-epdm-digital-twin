@@ -209,6 +209,14 @@ python scripts\ui_e2e_smoke.py
 python scripts\ui_e2e_workflow.py
 ```
 
+Run executable professional-skill peripheral QA:
+
+```powershell
+python scripts\dev_tasks.py professional-skill-qa
+```
+
+This command checks the artifacts that are appropriate for professional workflow-skill replacement: Excel report structure, Word report content, UI contract artifacts, and GitHub workflow readiness. It does not replace the scientific kernel gates.
+
 Run the full quality and release gates:
 
 ```powershell
@@ -322,12 +330,14 @@ Contributors should preserve the existing validation contract:
 - do not mask NaN, infinite, negative physical quantities, or critical residuals;
 - do not replace runtime math, physics, or validation logic with generic tooling;
 - update changelog and quality documents when changing runtime behavior or release gates.
+- use `professional-skill-qa` for peripheral UI/report/GitHub artifact checks that are suitable for professional workflow-skill replacement.
 
 Recommended pre-push command:
 
 ```powershell
 python scripts\dev_tasks.py quality-gate
 python scripts\release_gate.py
+python scripts\dev_tasks.py professional-skill-qa
 ```
 
 ---

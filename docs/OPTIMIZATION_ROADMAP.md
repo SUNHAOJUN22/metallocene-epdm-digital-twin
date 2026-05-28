@@ -33,7 +33,6 @@
 - Deepen DimensionedValue use inside flash, heat balance, transport and optimizer internals.
 - Add more real experimental validation datasets.
 - Register every report Plotly figure in plot validation.
-- Share report/repro audit build contexts where practical so repeated residual-system snapshots remain explicit but avoid redundant export assembly work.
 
 ## Medium Term
 

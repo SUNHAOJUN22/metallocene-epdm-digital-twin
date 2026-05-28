@@ -26,6 +26,7 @@
 - Prepared the project for first GitHub publication to `SUNHAOJUN22/metallocene-epdm-digital-twin` by initializing a local Git repository and expanding `.gitignore` to keep generated smoke outputs, local SQLite data, logs, rendered documentation images and transient artifacts out of source control.
 - Rewrote `README.md` into a standard industrial-software landing document with concise product scope, quality baseline, architecture, installation, operation, validation contract, data/evidence policy, report/reproducibility expectations, limitations and roadmap; the detailed generated manuals remain linked as supporting references.
 - Added bilingual README navigation: `README.md` remains the English landing page and `README.zh-CN.md` provides a full Chinese version with reciprocal language-switch links.
+- Added executable professional-skill peripheral QA via `scripts/professional_skill_qa.py`, `python scripts\dev_tasks.py professional-skill-qa` and Makefile target `professional-skill-qa`; this replaces eligible manual Excel/Word/UI/GitHub artifact checks while keeping the scientific runtime kernel repo-native.
 - No P0/P1/P2 defect was found, so no model rewrite or version-contract bump was applied.
 - Added `docs/V6_5_CHANGELOG.md` and `docs/V6_5_HALF_HOUR_AUDIT.md` to record test facts, remaining P3 risks and V6.6 recommendations.
 
