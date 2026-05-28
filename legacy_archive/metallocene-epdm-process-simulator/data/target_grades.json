@@ -1,0 +1,47 @@
+{
+  "A": {
+    "name": "中乙烯中高ENB高门尼型",
+    "C2_min": 53.0,
+    "C2_max": 57.0,
+    "ENB_min": 5.5,
+    "ENB_max": 6.5,
+    "ML_min": 75.0,
+    "ML_max": 85.0
+  },
+  "B": {
+    "name": "高ENB快硫化型",
+    "C2_min": 48.0,
+    "C2_max": 55.0,
+    "ENB_min": 8.0,
+    "ENB_max": 10.0,
+    "ML_min": 55.0,
+    "ML_max": 75.0
+  },
+  "C": {
+    "name": "高乙烯中ENB胶管型",
+    "C2_min": 65.0,
+    "C2_max": 72.0,
+    "ENB_min": 4.5,
+    "ENB_max": 5.5,
+    "ML_min": 70.0,
+    "ML_max": 90.0
+  },
+  "D": {
+    "name": "超高门尼加工型",
+    "C2_min": 45.0,
+    "C2_max": 60.0,
+    "ENB_min": 5.0,
+    "ENB_max": 8.0,
+    "ML_min": 120.0,
+    "ML_max": 200.0
+  },
+  "E": {
+    "name": "EPM无二烯型",
+    "C2_min": 55.0,
+    "C2_max": 75.0,
+    "ENB_min": 0.0,
+    "ENB_max": 0.2,
+    "ML_min": 20.0,
+    "ML_max": 80.0
+  }
+}

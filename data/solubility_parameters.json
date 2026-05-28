@@ -1,0 +1,28 @@
+{
+  "metadata": {
+    "version": "V4",
+    "description": "Henry-style gas solubility parameters for EPDM solution polymerization. Units are mol/L/MPa at T_ref_K with van't Hoff temperature correction."
+  },
+  "records": [
+    {"component": "ethylene", "solvent": "hexane", "solubility_ref_mol_L_MPa": 0.18, "dH_solution_J_mol": -5500.0, "T_ref_K": 373.15},
+    {"component": "ethylene", "solvent": "heptane", "solubility_ref_mol_L_MPa": 0.17, "dH_solution_J_mol": -5400.0, "T_ref_K": 373.15},
+    {"component": "ethylene", "solvent": "toluene", "solubility_ref_mol_L_MPa": 0.15, "dH_solution_J_mol": -5200.0, "T_ref_K": 373.15},
+    {"component": "propylene", "solvent": "hexane", "solubility_ref_mol_L_MPa": 0.24, "dH_solution_J_mol": -6500.0, "T_ref_K": 373.15},
+    {"component": "propylene", "solvent": "heptane", "solubility_ref_mol_L_MPa": 0.23, "dH_solution_J_mol": -6400.0, "T_ref_K": 373.15},
+    {"component": "propylene", "solvent": "toluene", "solubility_ref_mol_L_MPa": 0.20, "dH_solution_J_mol": -6100.0, "T_ref_K": 373.15},
+    {"component": "hydrogen", "solvent": "hexane", "solubility_ref_mol_L_MPa": 0.015, "dH_solution_J_mol": -1200.0, "T_ref_K": 373.15},
+    {"component": "hydrogen", "solvent": "heptane", "solubility_ref_mol_L_MPa": 0.014, "dH_solution_J_mol": -1100.0, "T_ref_K": 373.15},
+    {"component": "hydrogen", "solvent": "toluene", "solubility_ref_mol_L_MPa": 0.011, "dH_solution_J_mol": -900.0, "T_ref_K": 373.15}
+  ],
+  "catalyst_family_factors": {
+    "CGC-like": 1.05,
+    "mono-metallocene-like": 0.98,
+    "C3-3-TiMe2": 1.03,
+    "D2-2-TiCl2": 0.96
+  },
+  "solvent_factors": {
+    "hexane": 1.00,
+    "heptane": 0.97,
+    "toluene": 0.90
+  }
+}

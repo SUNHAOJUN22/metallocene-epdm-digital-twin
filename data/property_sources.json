@@ -1,0 +1,83 @@
+{
+  "version": "V4.6",
+  "properties": [
+    {
+      "property_id": "ethylene_MW",
+      "component": "ethylene",
+      "property_name": "MW",
+      "value": 28.054,
+      "unit": "g/mol",
+      "source_type": "literature",
+      "temperature_range": "all",
+      "pressure_range": "all",
+      "uncertainty_pct": 0.1,
+      "confidence_level": "high",
+      "notes": "standard molecular weight"
+    },
+    {
+      "property_id": "propylene_MW",
+      "component": "propylene",
+      "property_name": "MW",
+      "value": 42.081,
+      "unit": "g/mol",
+      "source_type": "literature",
+      "temperature_range": "all",
+      "pressure_range": "all",
+      "uncertainty_pct": 0.1,
+      "confidence_level": "high",
+      "notes": "standard molecular weight"
+    },
+    {
+      "property_id": "ENB_MW",
+      "component": "ENB",
+      "property_name": "MW",
+      "value": 120.19,
+      "unit": "g/mol",
+      "source_type": "literature",
+      "temperature_range": "all",
+      "pressure_range": "all",
+      "uncertainty_pct": 0.2,
+      "confidence_level": "high",
+      "notes": "default molecular weight"
+    },
+    {
+      "property_id": "hexane_viscosity",
+      "component": "hexane",
+      "property_name": "viscosity_Pa_s",
+      "value": 0.0003,
+      "unit": "Pa.s",
+      "source_type": "default_estimate",
+      "temperature_range": "290-380 K",
+      "pressure_range": "near liquid pressure",
+      "uncertainty_pct": 25.0,
+      "confidence_level": "medium",
+      "notes": "default engineering estimate; replace with measured solvent blend data"
+    },
+    {
+      "property_id": "EPDM_solution_viscosity_params",
+      "component": "polymer_EPDM",
+      "property_name": "solution_viscosity_model",
+      "value": 1.0,
+      "unit": "model",
+      "source_type": "fitted",
+      "temperature_range": "298-420 K",
+      "pressure_range": "screening",
+      "uncertainty_pct": 40.0,
+      "confidence_level": "medium",
+      "notes": "empirical model pending more rheology data"
+    },
+    {
+      "property_id": "ethylene_hexane_henry",
+      "component": "ethylene",
+      "property_name": "Henry_hexane",
+      "value": 0.22,
+      "unit": "mol/L/MPa",
+      "source_type": "default_estimate",
+      "temperature_range": "330-420 K",
+      "pressure_range": "0.1-5 MPa",
+      "uncertainty_pct": 50.0,
+      "confidence_level": "low",
+      "notes": "needs gas-liquid solubility experiment"
+    }
+  ]
+}

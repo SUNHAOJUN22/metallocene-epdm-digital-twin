@@ -1,0 +1,47 @@
+{
+  "active_set_id": "default",
+  "sets": {
+    "default": {
+      "set_id": "default",
+      "description": "Built-in apparent kinetic parameters from the engineering MVP model.",
+      "source": "built-in",
+      "catalyst_id": "generic-metallocene",
+      "parameters": {
+        "k_E_ref": 3600000.0,
+        "k_P_ref": 1450000.0,
+        "k_ENB_ref": 4000000.0,
+        "beta_P": 0.35,
+        "beta_E": 0.01,
+        "Mw0": 620000.0,
+        "ktr_H2": 45.0,
+        "kd_h": 0.08,
+        "pressure_optimum_MPa": 0.7,
+        "enb_feed_slope": 1.0,
+        "activity_decay_factor": 1.0
+      },
+      "metrics": {},
+      "created_by": "system"
+    },
+    "pdf_rules": {
+      "set_id": "pdf_rules",
+      "description": "PDF-rule-biased set: low pressure favors ENB incorporation, high pressure penalizes ENB, BHT can lift Mw.",
+      "source": "research-summary-rules",
+      "catalyst_id": "C3-3-TiMe2",
+      "parameters": {
+        "k_E_ref": 3600000.0,
+        "k_P_ref": 1350000.0,
+        "k_ENB_ref": 4600000.0,
+        "beta_P": 0.55,
+        "beta_E": 0.014,
+        "Mw0": 650000.0,
+        "ktr_H2": 45.0,
+        "kd_h": 0.075,
+        "pressure_optimum_MPa": 0.7,
+        "enb_feed_slope": 1.12,
+        "activity_decay_factor": 0.96
+      },
+      "metrics": {},
+      "created_by": "system"
+    }
+  }
+}

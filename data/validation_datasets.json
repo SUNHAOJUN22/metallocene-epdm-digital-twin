@@ -1,0 +1,33 @@
+{
+  "version": "V6.4 / 0.7.4",
+  "datasets": [
+    {
+      "dataset_id": "default_endpoint_validation_seed",
+      "source_type": "internal_screening_seed",
+      "description": "Small endpoint validation seed derived from internal EPDM experimental ranges; used for software workflow validation, not industrial calibration.",
+      "endpoint_rows": [
+        {
+          "run_id": "1109-2_validation_anchor",
+          "template_id": "EPDM_EPM_metallocene_solution",
+          "C2_wt": 54.3,
+          "ENB_wt": 6.8,
+          "Mooney": 79.0,
+          "Mw": 360300.0,
+          "polymer_kg_h": 15.5
+        },
+        {
+          "run_id": "1108-2_validation_anchor",
+          "template_id": "EPDM_EPM_metallocene_solution",
+          "C2_wt": 41.0,
+          "ENB_wt": 7.8,
+          "Mooney": 98.73,
+          "Mw": 335700.0,
+          "polymer_kg_h": 14.8
+        }
+      ],
+      "time_series_rows": []
+    }
+  ],
+  "model_version": "V6.4 / 0.7.4"
+}
+

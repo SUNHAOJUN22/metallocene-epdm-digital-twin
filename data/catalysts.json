@@ -1,0 +1,80 @@
+{
+  "C3-3-TiMe2": {
+    "catalyst_id": "C3-3-TiMe2",
+    "family": "CGC-like constrained-geometry metallocene",
+    "pressure_window_MPa": [0.7, 1.0],
+    "activity_ref_g_mol_h": 9200000.0,
+    "Mw_ref": 390000.0,
+    "ENB_incorporation_level": "medium-high",
+    "AlTi_window": [500, 1200],
+    "BHT_effect": "BHT can reduce MAO demand and increase molecular weight in screening experiments.",
+    "notes": [
+      "Low pressure around 0.7 MPa retains activity and favors ENB incorporation.",
+      "Increasing ENB feed lowers activity moderately while product ENB increases.",
+      "Raising pressure toward 2 MPa reduces product ENB content."
+    ]
+  },
+  "D2-2-TiCl2": {
+    "catalyst_id": "D2-2-TiCl2",
+    "family": "mono-metallocene",
+    "pressure_window_MPa": [0.7, 1.0],
+    "activity_ref_g_mol_h": 8000000.0,
+    "Mw_ref": 400000.0,
+    "ENB_incorporation_level": "very-high",
+    "AlTi_window": [800, 1200],
+    "BHT_effect": "Use BHT as an optional molecular-weight and MAO-demand modifier; calibration data still limited.",
+    "notes": [
+      "High-throughput screening showed good activity at 0.7 MPa and high molecular weight.",
+      "Product ENB rises approximately linearly with ENB feed.",
+      "High ENB products can still maintain useful ENB conversion."
+    ]
+  },
+  "CGC-like": {
+    "catalyst_id": "CGC-like",
+    "family": "generic constrained-geometry catalyst",
+    "pressure_window_MPa": [0.7, 1.5],
+    "activity_ref_g_mol_h": 9000000.0,
+    "Mw_ref": 360000.0,
+    "ENB_incorporation_level": "medium",
+    "AlTi_window": [500, 1000],
+    "BHT_effect": "BHT helps reduce MAO ratio and can increase Mw; validate by dedicated BHT/AlTi DOE.",
+    "notes": [
+      "MAO reduction from Al/Ti 500 to 200 can cause clear activity loss.",
+      "At 2 MPa, ENB conversion is typically lower than at 0.7 MPa.",
+      "Observed monomer conversion ranking is generally ethylene > ENB > propylene."
+    ]
+  },
+  "mono-metallocene-like": {
+    "catalyst_id": "mono-metallocene-like",
+    "family": "generic mono-metallocene",
+    "pressure_window_MPa": [0.7, 1.2],
+    "activity_ref_g_mol_h": 7500000.0,
+    "Mw_ref": 420000.0,
+    "ENB_incorporation_level": "high",
+    "AlTi_window": [800, 1200],
+    "BHT_effect": "BHT effect should be calibrated; use as a screened modifier rather than a fixed design rule.",
+    "notes": [
+      "Low pressure around 0.7 MPa is preferred for ENB incorporation.",
+      "High pressure around 2 MPa reduces ENB content and conversion.",
+      "Use for high-ENB and fast-cure EPDM screening windows."
+    ]
+  },
+  "PDF_rules": {
+    "catalyst_id": "PDF_rules",
+    "family": "research-summary empirical rules",
+    "pressure_window_MPa": [0.7, 2.0],
+    "activity_ref_g_mol_h": 72000000.0,
+    "Mw_ref": 360300.0,
+    "ENB_incorporation_level": "calibration-anchor",
+    "AlTi_window": [500, 1000],
+    "BHT_effect": "BHT can reduce MAO requirement and increase Mw; hydrotuning still needs dedicated experiments.",
+    "notes": [
+      "Low pressure 0.7 MPa is beneficial for ENB incorporation; high pressure 2 MPa lowers ENB content.",
+      "MAO Al/Ti ratio reduction from 500 to 200 causes obvious activity decrease.",
+      "Increasing ENB feed raises product ENB approximately linearly but ENB conversion decreases.",
+      "Overall conversion ranking in kettle data: ethylene > ENB > propylene.",
+      "E/P ratio changes product composition and discharge/fouling state.",
+      "2 L and 5 L kettle runs have similar activity and gel state; 5 L tends toward higher Mw, broader PDI and lower Mooney."
+    ]
+  }
+}

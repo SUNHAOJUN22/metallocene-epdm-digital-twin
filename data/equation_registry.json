@@ -1,0 +1,816 @@
+{
+  "version": "V6.4",
+  "equations": [
+    {
+      "equation_id": "arrhenius_rate_constant",
+      "module_id": "reactor_kinetics",
+      "display_name": "Arrhenius apparent rate constant",
+      "formula_text": "k_i(T)=k_i_ref*exp[-Ea_i/R*(1/T-1/T_ref)]",
+      "variables": [
+        "k_i",
+        "k_i_ref",
+        "Ea_i",
+        "R",
+        "T",
+        "T_ref"
+      ],
+      "variable_units": {
+        "k_i": "L/mol/h",
+        "k_i_ref": "L/mol/h",
+        "Ea_i": "J/mol",
+        "R": "J/mol/K",
+        "T": "K",
+        "T_ref": "K"
+      },
+      "output_unit": "L/mol/h",
+      "assumptions": "Apparent liquid-phase metallocene insertion rate; parameters require local calibration.",
+      "validity_range": "R&D screening near 60-180 degC",
+      "dimensional_check": "Ea/R*(1/T) is dimensionless",
+      "fallback": "Exponent is bounded; non-finite values fall back to finite apparent constants.",
+      "references_or_origin": "V1-V4 internal apparent kinetics",
+      "implementation_function": "epdm_sim.kinetics.arrhenius",
+      "input_units": {
+        "k_i": "L/mol/h",
+        "k_i_ref": "L/mol/h",
+        "Ea_i": "J/mol",
+        "R": "J/mol/K",
+        "T": "K",
+        "T_ref": "K"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "arrhenius_rate_ratio",
+      "fallback_policy": "Exponent is bounded; non-finite values fall back to finite apparent constants.",
+      "residual_id": "arrhenius_rate_constant",
+      "dimensional_signature": "Ea/R*(1/T) is dimensionless"
+    },
+    {
+      "equation_id": "activation_factor",
+      "module_id": "reactor_kinetics",
+      "display_name": "Al/Ti and BHT activation factor",
+      "formula_text": "f_act=AlTi/(K_Al+AlTi)*(1+alpha_BHT*BHT/(K_BHT+BHT))",
+      "variables": [
+        "AlTi",
+        "K_Al",
+        "BHT",
+        "K_BHT",
+        "alpha_BHT"
+      ],
+      "variable_units": {
+        "AlTi": "-",
+        "K_Al": "-",
+        "BHT": "-",
+        "K_BHT": "-",
+        "alpha_BHT": "-"
+      },
+      "output_unit": "-",
+      "assumptions": "Saturating co-catalyst activation with empirical BHT modifier.",
+      "validity_range": "Al/Ti roughly 100-3000",
+      "dimensional_check": "all ratios dimensionless",
+      "fallback": "Clamped to finite non-negative range.",
+      "references_or_origin": "internal catalyst rules",
+      "implementation_function": "epdm_sim.kinetics.activation_factor",
+      "input_units": {
+        "AlTi": "-",
+        "K_Al": "-",
+        "BHT": "-",
+        "K_BHT": "-",
+        "alpha_BHT": "-"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "activation_factor",
+      "fallback_policy": "Clamped to finite non-negative range.",
+      "residual_id": "activation_factor",
+      "dimensional_signature": "all ratios dimensionless"
+    },
+    {
+      "equation_id": "enb_pressure_factor",
+      "module_id": "reactor_kinetics",
+      "display_name": "ENB pressure penalty",
+      "formula_text": "f_P=1/(1+beta_P*max(P_MPa-0.7,0))",
+      "variables": [
+        "beta_P",
+        "P_MPa"
+      ],
+      "variable_units": {
+        "beta_P": "1/MPa",
+        "P_MPa": "MPa"
+      },
+      "output_unit": "-",
+      "assumptions": "Low pressure near 0.7 MPa favors ENB incorporation.",
+      "validity_range": "0.1-5 MPa screening",
+      "dimensional_check": "beta_P*pressure is dimensionless",
+      "fallback": "bounded positive factor",
+      "references_or_origin": "PDF/internal experimental rule",
+      "implementation_function": "epdm_sim.kinetics.pressure_factor_enb",
+      "input_units": {
+        "beta_P": "1/MPa",
+        "P_MPa": "MPa"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "enb_pressure_factor",
+      "fallback_policy": "bounded positive factor",
+      "residual_id": "enb_pressure_factor",
+      "dimensional_signature": "beta_P*pressure is dimensionless"
+    },
+    {
+      "equation_id": "ethylene_competition_factor",
+      "module_id": "reactor_kinetics",
+      "display_name": "Ethylene competition factor for ENB",
+      "formula_text": "f_E=1/(1+beta_E*C_E/max(C_ENB,tiny))",
+      "variables": [
+        "beta_E",
+        "C_E",
+        "C_ENB"
+      ],
+      "variable_units": {
+        "beta_E": "-",
+        "C_E": "mol/L",
+        "C_ENB": "mol/L"
+      },
+      "output_unit": "-",
+      "assumptions": "High ethylene liquid concentration suppresses relative ENB insertion.",
+      "validity_range": "positive liquid monomer concentrations",
+      "dimensional_check": "C_E/C_ENB is dimensionless",
+      "fallback": "tiny floor prevents division by zero",
+      "references_or_origin": "internal apparent kinetics",
+      "implementation_function": "",
+      "input_units": {
+        "beta_E": "-",
+        "C_E": "mol/L",
+        "C_ENB": "mol/L"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "ethylene_competition_factor",
+      "fallback_policy": "tiny floor prevents division by zero",
+      "residual_id": "ethylene_competition_factor",
+      "dimensional_signature": "C_E/C_ENB is dimensionless"
+    },
+    {
+      "equation_id": "hydrogen_chain_transfer_mw",
+      "module_id": "reactor_kinetics",
+      "display_name": "Hydrogen chain transfer Mw",
+      "formula_text": "Mw=Mw0/(1+ktr_H2*C_H2)",
+      "variables": [
+        "Mw",
+        "Mw0",
+        "ktr_H2",
+        "C_H2"
+      ],
+      "variable_units": {
+        "Mw": "g/mol",
+        "Mw0": "g/mol",
+        "ktr_H2": "L/mol",
+        "C_H2": "mol/L"
+      },
+      "output_unit": "g/mol",
+      "assumptions": "Hydrogen affects molecular weight but not first-order monomer consumption.",
+      "validity_range": "trend model for H2 screening",
+      "dimensional_check": "ktr_H2*C_H2 is dimensionless",
+      "fallback": "Mw clamped to positive engineering range",
+      "references_or_origin": "internal H2 tuning model",
+      "implementation_function": "epdm_sim.kinetics.estimate_molecular_weight",
+      "input_units": {
+        "Mw": "g/mol",
+        "Mw0": "g/mol",
+        "ktr_H2": "L/mol",
+        "C_H2": "mol/L"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "hydrogen_chain_transfer_mw",
+      "fallback_policy": "Mw clamped to positive engineering range",
+      "residual_id": "hydrogen_chain_transfer_mw",
+      "dimensional_signature": "ktr_H2*C_H2 is dimensionless"
+    },
+    {
+      "equation_id": "reaction_heat_release",
+      "module_id": "heat_balance",
+      "display_name": "Polymerization heat release",
+      "formula_text": "Q_rxn_kJ_h=-sum(n_i_consumed_mol_h*DeltaH_i_kJ_mol)",
+      "variables": [
+        "Q_rxn",
+        "n_i",
+        "DeltaH_i"
+      ],
+      "variable_units": {
+        "Q_rxn": "kJ/h",
+        "n_i": "mol/h",
+        "DeltaH_i": "kJ/mol"
+      },
+      "output_unit": "kJ/h",
+      "assumptions": "DeltaH is negative for exothermic polymerization; output is positive heat removal demand.",
+      "validity_range": "apparent heats for EPDM/EPM screening",
+      "dimensional_check": "mol/h*kJ/mol = kJ/h",
+      "fallback": "negative or missing consumed moles clipped to zero",
+      "references_or_origin": "engineering defaults",
+      "implementation_function": "epdm_sim.heat_balance.calculate_reaction_heat",
+      "input_units": {
+        "Q_rxn": "kJ/h",
+        "n_i": "mol/h",
+        "DeltaH_i": "kJ/mol"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "heat_release_standard",
+      "fallback_policy": "negative or missing consumed moles clipped to zero",
+      "residual_id": "heat_release_proxy",
+      "dimensional_signature": "mol/h*kJ/mol = kJ/h"
+    },
+    {
+      "equation_id": "adiabatic_temperature_rise",
+      "module_id": "heat_balance",
+      "display_name": "Adiabatic temperature rise",
+      "formula_text": "DeltaT_ad=Q_rxn_kJ_h/(M_holdup_kg*Cp_kJ_kgK)",
+      "variables": [
+        "Q_rxn",
+        "M",
+        "Cp"
+      ],
+      "variable_units": {
+        "Q_rxn": "kJ/h",
+        "M": "kg",
+        "Cp": "kJ/kg/K"
+      },
+      "output_unit": "K/h equivalent",
+      "assumptions": "Screening index using hourly heat release and holdup heat capacity.",
+      "validity_range": "positive holdup and Cp",
+      "dimensional_check": "kJ/(kg*kJ/kg/K)=K",
+      "fallback": "Cp and mass floors prevent division by zero",
+      "references_or_origin": "engineering heat balance",
+      "implementation_function": "epdm_sim.heat_balance.calculate_heat_balance",
+      "input_units": {
+        "Q_rxn": "kJ/h",
+        "M": "kg",
+        "Cp": "kJ/kg/K"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "adiabatic_temperature_rise",
+      "fallback_policy": "Cp and mass floors prevent division by zero",
+      "residual_id": "heat_release_proxy",
+      "dimensional_signature": "kJ/(kg*kJ/kg/K)=K"
+    },
+    {
+      "equation_id": "wilson_k_value",
+      "module_id": "thermo_flash",
+      "display_name": "Wilson K-value",
+      "formula_text": "lnK=ln(Pc/P)+5.373*(1+omega)*(1-Tc/T)",
+      "variables": [
+        "K",
+        "Pc",
+        "P",
+        "omega",
+        "Tc",
+        "T"
+      ],
+      "variable_units": {
+        "K": "-",
+        "Pc": "Pa",
+        "P": "Pa",
+        "omega": "-",
+        "Tc": "K",
+        "T": "K"
+      },
+      "output_unit": "-",
+      "assumptions": "Simple VLE screening; not polymer-solution rigorous.",
+      "validity_range": "non-polymer components",
+      "dimensional_check": "ln(Pc/P) and temperature ratio dimensionless",
+      "fallback": "bounded K-value",
+      "references_or_origin": "Wilson correlation",
+      "implementation_function": "epdm_sim.thermo.wilson_k_value",
+      "input_units": {
+        "K": "-",
+        "Pc": "Pa",
+        "P": "Pa",
+        "omega": "-",
+        "Tc": "K",
+        "T": "K"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "wilson_k_value",
+      "fallback_policy": "bounded K-value",
+      "residual_id": "wilson_k_value",
+      "dimensional_signature": "ln(Pc/P) and temperature ratio dimensionless"
+    },
+    {
+      "equation_id": "rachford_rice",
+      "module_id": "thermo_flash",
+      "display_name": "Rachford-Rice flash equation",
+      "formula_text": "sum[z_i*(K_i-1)/(1+V*(K_i-1))]=0",
+      "variables": [
+        "z_i",
+        "K_i",
+        "V"
+      ],
+      "variable_units": {
+        "z_i": "mole fraction",
+        "K_i": "-",
+        "V": "fraction"
+      },
+      "output_unit": "fraction",
+      "assumptions": "Two-phase vapor-liquid split with bounded vapor fraction.",
+      "validity_range": "0<=V<=1",
+      "dimensional_check": "all terms dimensionless",
+      "fallback": "all-liquid/all-vapor/bounded Wilson fallback",
+      "references_or_origin": "standard flash",
+      "implementation_function": "epdm_sim.thermo.solve_rachford_rice",
+      "input_units": {
+        "z_i": "mole fraction",
+        "K_i": "-",
+        "V": "fraction"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "rachford_rice_standard",
+      "fallback_policy": "all-liquid/all-vapor/bounded Wilson fallback",
+      "residual_id": "flash_phase_mass",
+      "dimensional_signature": "all terms dimensionless"
+    },
+    {
+      "equation_id": "eos_fugacity_k",
+      "module_id": "thermo_flash",
+      "display_name": "PR/SRK fugacity K-value",
+      "formula_text": "K_i=phi_liq_i/phi_vap_i",
+      "variables": [
+        "K_i",
+        "phi_liq_i",
+        "phi_vap_i"
+      ],
+      "variable_units": {
+        "K_i": "-",
+        "phi_liq_i": "-",
+        "phi_vap_i": "-"
+      },
+      "output_unit": "-",
+      "assumptions": "Cubic EOS local estimate with kij optional.",
+      "validity_range": "non-polymer components with Tc/Pc/omega",
+      "dimensional_check": "fugacity coefficients are dimensionless",
+      "fallback": "Wilson K-value when EOS invalid",
+      "references_or_origin": "PR/SRK EOS",
+      "implementation_function": "epdm_sim.eos.cubic_eos_k_value",
+      "input_units": {
+        "K_i": "-",
+        "phi_liq_i": "-",
+        "phi_vap_i": "-"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "pr_eos_ethylene_k",
+      "fallback_policy": "Wilson K-value when EOS invalid",
+      "residual_id": "flash_phase_mass",
+      "dimensional_signature": "fugacity coefficients are dimensionless"
+    },
+    {
+      "equation_id": "henry_liquid_saturation",
+      "module_id": "solubility",
+      "display_name": "Henry liquid saturation concentration",
+      "formula_text": "Cstar=H_i(T,solvent)*y_i*P",
+      "variables": [
+        "Cstar",
+        "H_i",
+        "y_i",
+        "P"
+      ],
+      "variable_units": {
+        "Cstar": "mol/L",
+        "H_i": "mol/L/MPa",
+        "y_i": "-",
+        "P": "MPa"
+      },
+      "output_unit": "mol/L",
+      "assumptions": "Gas solubility trend model for C2/C3/H2.",
+      "validity_range": "screening only; requires solubility data",
+      "dimensional_check": "mol/L/MPa*MPa = mol/L",
+      "fallback": "non-negative bounded Cstar",
+      "references_or_origin": "internal solubility defaults",
+      "implementation_function": "epdm_sim.solubility.liquid_saturation_concentration_mol_L",
+      "input_units": {
+        "Cstar": "mol/L",
+        "H_i": "mol/L/MPa",
+        "y_i": "-",
+        "P": "MPa"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "henry_pressure_delta",
+      "fallback_policy": "non-negative bounded Cstar",
+      "residual_id": "henry_liquid_saturation",
+      "dimensional_signature": "mol/L/MPa*MPa = mol/L"
+    },
+    {
+      "equation_id": "solution_viscosity",
+      "module_id": "fluid_rheology_hydraulics",
+      "display_name": "EPDM solution viscosity",
+      "formula_text": "mu=mu_solvent*exp(A*s+B*s^2)*(Mw/300000)^alpha*exp(E/R*(1/T-1/Tref))",
+      "variables": [
+        "mu",
+        "s",
+        "Mw",
+        "T"
+      ],
+      "variable_units": {
+        "mu": "Pa.s",
+        "s": "fraction",
+        "Mw": "g/mol",
+        "T": "K"
+      },
+      "output_unit": "Pa.s",
+      "assumptions": "Empirical polymer solution viscosity.",
+      "validity_range": "low-to-moderate solids screening",
+      "dimensional_check": "exponential arguments dimensionless",
+      "fallback": "positive clamped viscosity",
+      "references_or_origin": "internal rheology model",
+      "implementation_function": "epdm_sim.rheology.zero_shear_solution_viscosity",
+      "input_units": {
+        "mu": "Pa.s",
+        "s": "fraction",
+        "Mw": "g/mol",
+        "T": "K"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "solution_viscosity",
+      "fallback_policy": "positive clamped viscosity",
+      "residual_id": "solution_viscosity",
+      "dimensional_signature": "exponential arguments dimensionless"
+    },
+    {
+      "equation_id": "power_law_viscosity",
+      "module_id": "fluid_rheology_hydraulics",
+      "display_name": "Power-law apparent viscosity",
+      "formula_text": "mu_app=mu_ref*(gamma_dot/gamma_ref)^(n-1)",
+      "variables": [
+        "mu_app",
+        "mu_ref",
+        "gamma_dot",
+        "gamma_ref",
+        "n"
+      ],
+      "variable_units": {
+        "mu_app": "Pa.s",
+        "mu_ref": "Pa.s",
+        "gamma_dot": "1/s",
+        "gamma_ref": "1/s",
+        "n": "-"
+      },
+      "output_unit": "Pa.s",
+      "assumptions": "Shear-thinning apparent viscosity proxy.",
+      "validity_range": "positive shear rate",
+      "dimensional_check": "shear-rate ratio dimensionless",
+      "fallback": "Newtonian if model invalid",
+      "references_or_origin": "rheology module",
+      "implementation_function": "epdm_sim.rheology.apparent_viscosity_from_zero_shear",
+      "input_units": {
+        "mu_app": "Pa.s",
+        "mu_ref": "Pa.s",
+        "gamma_dot": "1/s",
+        "gamma_ref": "1/s",
+        "n": "-"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "power_law_viscosity",
+      "fallback_policy": "Newtonian if model invalid",
+      "residual_id": "power_law_viscosity",
+      "dimensional_signature": "shear-rate ratio dimensionless"
+    },
+    {
+      "equation_id": "carreau_yasuda_viscosity",
+      "module_id": "fluid_rheology_hydraulics",
+      "display_name": "Carreau-Yasuda apparent viscosity",
+      "formula_text": "mu=mu_inf+(mu0-mu_inf)*(1+(lambda*gamma)^a)^((n-1)/a)",
+      "variables": [
+        "mu",
+        "mu0",
+        "mu_inf",
+        "lambda",
+        "gamma",
+        "a",
+        "n"
+      ],
+      "variable_units": {
+        "mu": "Pa.s",
+        "mu0": "Pa.s",
+        "mu_inf": "Pa.s",
+        "lambda": "s",
+        "gamma": "1/s",
+        "a": "-",
+        "n": "-"
+      },
+      "output_unit": "Pa.s",
+      "assumptions": "Bounded shear-thinning model.",
+      "validity_range": "positive viscosity and shear rate",
+      "dimensional_check": "lambda*gamma is dimensionless",
+      "fallback": "positive clamped viscosity",
+      "references_or_origin": "rheology module",
+      "implementation_function": "epdm_sim.rheology.apparent_viscosity_from_zero_shear",
+      "input_units": {
+        "mu": "Pa.s",
+        "mu0": "Pa.s",
+        "mu_inf": "Pa.s",
+        "lambda": "s",
+        "gamma": "1/s",
+        "a": "-",
+        "n": "-"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "rheology_viscosity_positive",
+      "fallback_policy": "positive clamped viscosity",
+      "residual_id": "transport_viscosity",
+      "dimensional_signature": "lambda*gamma is dimensionless"
+    },
+    {
+      "equation_id": "darcy_weisbach_pressure_drop",
+      "module_id": "fluid_rheology_hydraulics",
+      "display_name": "Darcy-Weisbach pressure drop",
+      "formula_text": "DeltaP=f*(L/D)*rho*v^2/2",
+      "variables": [
+        "DeltaP",
+        "f",
+        "L",
+        "D",
+        "rho",
+        "v"
+      ],
+      "variable_units": {
+        "DeltaP": "Pa",
+        "f": "-",
+        "L": "m",
+        "D": "m",
+        "rho": "kg/m3",
+        "v": "m/s"
+      },
+      "output_unit": "Pa",
+      "assumptions": "1D pipe hydraulics with apparent viscosity.",
+      "validity_range": "positive pipe diameter and flow",
+      "dimensional_check": "kg/m3*m2/s2 = Pa",
+      "fallback": "positive diameter/viscosity floors",
+      "references_or_origin": "standard hydraulics",
+      "implementation_function": "epdm_sim.fluid_props.calculate_pipe_hydraulics",
+      "input_units": {
+        "DeltaP": "Pa",
+        "f": "-",
+        "L": "m",
+        "D": "m",
+        "rho": "kg/m3",
+        "v": "m/s"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "pressure_drop_default",
+      "fallback_policy": "positive diameter/viscosity floors",
+      "residual_id": "transport_pressure_drop",
+      "dimensional_signature": "kg/m3*m2/s2 = Pa"
+    },
+    {
+      "equation_id": "fouling_index",
+      "module_id": "fluid_rheology_hydraulics",
+      "display_name": "Fouling risk index",
+      "formula_text": "FI=(solids/20)^2*(Mw/300000)^0.6*(mu/0.001)^0.4*(nu/1e-6)^0.15",
+      "variables": [
+        "FI",
+        "solids",
+        "Mw",
+        "mu",
+        "nu"
+      ],
+      "variable_units": {
+        "FI": "-",
+        "solids": "wt%",
+        "Mw": "g/mol",
+        "mu": "Pa.s",
+        "nu": "m2/s"
+      },
+      "output_unit": "-",
+      "assumptions": "Qualitative fouling/transport screening index.",
+      "validity_range": "R&D trend screening",
+      "dimensional_check": "all terms normalized dimensionless",
+      "fallback": "non-negative index",
+      "references_or_origin": "internal engineering heuristic",
+      "implementation_function": "",
+      "input_units": {
+        "FI": "-",
+        "solids": "wt%",
+        "Mw": "g/mol",
+        "mu": "Pa.s",
+        "nu": "m2/s"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "fouling_index",
+      "fallback_policy": "non-negative index",
+      "residual_id": "fouling_index",
+      "dimensional_signature": "all terms normalized dimensionless"
+    },
+    {
+      "equation_id": "fox_tg",
+      "module_id": "product_properties",
+      "display_name": "Fox Tg estimate",
+      "formula_text": "1/Tg=sum(w_i/Tg_i)",
+      "variables": [
+        "Tg",
+        "w_i",
+        "Tg_i"
+      ],
+      "variable_units": {
+        "Tg": "K",
+        "w_i": "fraction",
+        "Tg_i": "K"
+      },
+      "output_unit": "K",
+      "assumptions": "Segment-weighted glass transition estimate.",
+      "validity_range": "composition must sum to one",
+      "dimensional_check": "1/K on both sides",
+      "fallback": "finite default Tg",
+      "references_or_origin": "Fox equation",
+      "implementation_function": "epdm_sim.polymer_props.estimate_tg",
+      "input_units": {
+        "Tg": "K",
+        "w_i": "fraction",
+        "Tg_i": "K"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "fox_tg",
+      "fallback_policy": "finite default Tg",
+      "residual_id": "fox_tg",
+      "dimensional_signature": "1/K on both sides"
+    },
+    {
+      "equation_id": "grade_match_score",
+      "module_id": "product_properties",
+      "display_name": "Grade match score",
+      "formula_text": "score=w1*abs(C2-target_C2)+w2*abs(ENB-target_ENB)+w3*abs(ML-target_ML)/10+w4*abs(PDI-target_PDI)",
+      "variables": [
+        "score",
+        "C2",
+        "ENB",
+        "ML",
+        "PDI"
+      ],
+      "variable_units": {
+        "score": "-",
+        "C2": "wt%",
+        "ENB": "wt%",
+        "ML": "ML(1+4)",
+        "PDI": "-"
+      },
+      "output_unit": "-",
+      "assumptions": "Lower score means closer to target grade.",
+      "validity_range": "EPDM/Vistalon-like target grades",
+      "dimensional_check": "weighted normalized deviations",
+      "fallback": "missing target fields ignored",
+      "references_or_origin": "internal grade matching",
+      "implementation_function": "epdm_sim.polymer_props.grade_match",
+      "input_units": {
+        "score": "-",
+        "C2": "wt%",
+        "ENB": "wt%",
+        "ML": "ML(1+4)",
+        "PDI": "-"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "model_audit_score",
+      "fallback_policy": "missing target fields ignored",
+      "residual_id": "grade_match_score",
+      "dimensional_signature": "weighted normalized deviations"
+    },
+    {
+      "equation_id": "template_feed_mole_conversion",
+      "module_id": "template_config",
+      "display_name": "Template feed mass-to-mole conversion",
+      "formula_text": "F_i_mol_h = feed_i_kg_h * 1000 / MW_i_g_mol",
+      "variables": [
+        "F_i",
+        "feed_i",
+        "MW_i"
+      ],
+      "variable_units": {
+        "F_i": "mol/h",
+        "feed_i": "kg/h",
+        "MW_i": "g/mol"
+      },
+      "output_unit": "mol/h",
+      "assumptions": "Monomer molecular weights are read from reaction_templates.json when components.json lacks generic species.",
+      "validity_range": "non-negative feed and positive MW",
+      "dimensional_check": "kg/h*1000 g/kg/(g/mol)=mol/h",
+      "fallback": "unknown MW uses template/default positive molecular weight",
+      "references_or_origin": "V4.8 template-native feed adapter",
+      "implementation_function": "",
+      "input_units": {
+        "F_i": "mol/h",
+        "feed_i": "kg/h",
+        "MW_i": "g/mol"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "template_feed_mole_conversion",
+      "fallback_policy": "unknown MW uses template/default positive molecular weight",
+      "residual_id": "template_feed_mole_conversion",
+      "dimensional_signature": "kg/h*1000 g/kg/(g/mol)=mol/h"
+    },
+    {
+      "equation_id": "template_segment_mass",
+      "module_id": "template_flowsheet",
+      "display_name": "Template consumed monomer to segment mass",
+      "formula_text": "M_segment_kg_h = sum(n_i_consumed_mol_h * MW_i_g_mol / 1000)",
+      "variables": [
+        "M_segment",
+        "n_i_consumed",
+        "MW_i"
+      ],
+      "variable_units": {
+        "M_segment": "kg/h",
+        "n_i_consumed": "mol/h",
+        "MW_i": "g/mol"
+      },
+      "output_unit": "kg/h",
+      "assumptions": "No byproduct mass is created in the apparent addition polymerization balance.",
+      "validity_range": "bounded monomer conversions in [0,1]",
+      "dimensional_check": "mol/h*g/mol/1000 g/kg=kg/h",
+      "fallback": "consumed moles clipped to available moles",
+      "references_or_origin": "V4.8 template flowsheet mass balance",
+      "implementation_function": "",
+      "input_units": {
+        "M_segment": "kg/h",
+        "n_i_consumed": "mol/h",
+        "MW_i": "g/mol"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "template_segment_mass",
+      "fallback_policy": "consumed moles clipped to available moles",
+      "residual_id": "template_segment_mass",
+      "dimensional_signature": "mol/h*g/mol/1000 g/kg=kg/h"
+    },
+    {
+      "equation_id": "template_liquid_monomer_balance",
+      "module_id": "template_ode_rhs",
+      "display_name": "Template liquid monomer dynamic balance",
+      "formula_text": "dN_i_liq/dt = F_i,in + kLa_i*(N_i_gas*a_i - b_i*N_i_liq) - r_i*V",
+      "variables": [
+        "N_i_liq",
+        "F_i",
+        "kLa_i",
+        "N_i_gas",
+        "r_i",
+        "V"
+      ],
+      "variable_units": {
+        "N_i_liq": "mol",
+        "F_i": "mol/min",
+        "kLa_i": "1/min",
+        "N_i_gas": "mol",
+        "r_i": "mol/L/min",
+        "V": "L"
+      },
+      "output_unit": "mol/min",
+      "assumptions": "R&D gas-liquid transfer proxy; coefficients are not industrial kLa correlations.",
+      "validity_range": "finite non-negative state vector",
+      "dimensional_check": "all RHS terms are mol/min",
+      "fallback": "projected non-negative states and explicit bounded fallback",
+      "references_or_origin": "V4.8 template solve_ivp RHS",
+      "implementation_function": "epdm_sim.template_ode_rhs.template_ode_rhs",
+      "input_units": {
+        "N_i_liq": "mol",
+        "F_i": "mol/min",
+        "kLa_i": "1/min",
+        "N_i_gas": "mol",
+        "r_i": "mol/L/min",
+        "V": "L"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "template_liquid_monomer_balance",
+      "fallback_policy": "projected non-negative states and explicit bounded fallback",
+      "residual_id": "dynamic_accumulation",
+      "dimensional_signature": "all RHS terms are mol/min"
+    },
+    {
+      "equation_id": "template_energy_balance",
+      "module_id": "template_ode_rhs",
+      "display_name": "Template dynamic energy balance",
+      "formula_text": "dT/dt = (Q_rxn - Q_removed)/(M_holdup*Cp)",
+      "variables": [
+        "T",
+        "Q_rxn",
+        "Q_removed",
+        "M_holdup",
+        "Cp"
+      ],
+      "variable_units": {
+        "T": "K",
+        "Q_rxn": "kJ/min",
+        "Q_removed": "kJ/min",
+        "M_holdup": "kg",
+        "Cp": "kJ/kg/K"
+      },
+      "output_unit": "K/min",
+      "assumptions": "Lumped reactor thermal mass with jacket UA proxy.",
+      "validity_range": "positive holdup and finite heat duties",
+      "dimensional_check": "kJ/min/(kg*kJ/kg/K)=K/min",
+      "fallback": "bounded temperature profile and high-temperature warning",
+      "references_or_origin": "V4.8 template solve_ivp RHS",
+      "implementation_function": "",
+      "input_units": {
+        "T": "K",
+        "Q_rxn": "kJ/min",
+        "Q_removed": "kJ/min",
+        "M_holdup": "kg",
+        "Cp": "kJ/kg/K"
+      },
+      "expected_trends": "finite bounded output under validity range",
+      "benchmark_id": "template_energy_balance",
+      "fallback_policy": "bounded temperature profile and high-temperature warning",
+      "residual_id": "dynamic_energy_balance",
+      "dimensional_signature": "kJ/min/(kg*kJ/kg/K)=K/min"
+    }
+  ]
+}
+

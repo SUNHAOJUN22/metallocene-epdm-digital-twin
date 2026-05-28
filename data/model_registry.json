@@ -1,0 +1,2220 @@
+{
+  "version": "0.7.4",
+  "canonical_project": "metallocene-epdm-digital-twin",
+  "merged_legacy_project": "metallocene-epdm-process-simulator",
+  "policy": "The digital twin is the canonical runtime. Legacy process-simulator formulas and tests are retained as the baseline process-simulation layer where they are not superseded by V4 modules.",
+  "modules": [
+    {
+      "module_id": "flowsheet",
+      "display_name": "Aspen-style flowsheet material balance",
+      "category": "process",
+      "origin_project": "merged",
+      "implementation": "epdm_sim/flowsheet.py",
+      "trigger_mode": "auto_cached",
+      "equations": [
+        "feed -> mixer -> preheater -> reactor -> quench -> flash -> recycle",
+        "mass closure = input - output - accumulation"
+      ],
+      "inputs": [
+        "ProcessConfig",
+        "component data",
+        "parameter set"
+      ],
+      "outputs": [
+        "stream table",
+        "unit operation results",
+        "KPI summary"
+      ],
+      "validity_range": {
+        "temperature_C": "60-180 engineering screening",
+        "pressure_MPa": "0.1-5.0 screening",
+        "scope": "steady or quasi-steady R&D material balance"
+      },
+      "engineering_logic": "Uses a consistent stream and unit-operation data path so UI pages do not duplicate process calculations.",
+      "fallback": "Simplified single-pass flowsheet if recycle iteration is not requested.",
+      "status": "active",
+      "parameters": [
+        "ProcessConfig",
+        "component MW/density",
+        "parameter_set_id"
+      ],
+      "required_units": {
+        "mass_flow": "kg/h",
+        "temperature": "K or degC",
+        "pressure": "Pa or MPa"
+      },
+      "mathematical_checks": [
+        "input hash changes invalidate cached output",
+        "finite numeric outputs",
+        "non-negative physical intensive properties where applicable"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "fallback warning if outside model scope"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Runs through cached fast service; page navigation reuses existing result.",
+      "ui_entry": "sidebar quick run/dashboard"
+    },
+    {
+      "module_id": "thermo_flash",
+      "display_name": "Wilson/PR/SRK flash and K-value calculation",
+      "category": "thermodynamics",
+      "origin_project": "merged",
+      "implementation": "epdm_sim/thermo.py, epdm_sim/eos.py, epdm_sim/flash.py",
+      "trigger_mode": "auto_cached",
+      "equations": [
+        "ln(K_i)=ln(Pc/P)+5.373(1+omega)(1-Tc/T)",
+        "Rachford-Rice sum[z_i(K_i-1)/(1+V(K_i-1))]=0",
+        "PR/SRK: K_i = phi_liq_i / phi_vap_i"
+      ],
+      "inputs": [
+        "T",
+        "P",
+        "z_i",
+        "component Tc/Pc/omega",
+        "binary kij"
+      ],
+      "outputs": [
+        "vapor fraction",
+        "vapor/liquid composition",
+        "Z",
+        "phi",
+        "K values"
+      ],
+      "validity_range": {
+        "model": "Wilson default, PR/SRK enhanced local estimate",
+        "polymer_solution": "qualitative only for polymer-rich flash"
+      },
+      "engineering_logic": "Keeps a simple robust default and exposes EOS diagnostics when more credibility is needed.",
+      "fallback": "Wilson K-value flash if EOS data or root selection fails.",
+      "status": "active",
+      "parameters": [
+        "Tc",
+        "Pc",
+        "omega",
+        "kij",
+        "thermo_mode"
+      ],
+      "required_units": {
+        "temperature": "K",
+        "pressure": "Pa",
+        "composition": "mole fraction"
+      },
+      "mathematical_checks": [
+        "input hash changes invalidate cached output",
+        "finite numeric outputs",
+        "non-negative physical intensive properties where applicable"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "fallback warning if outside model scope",
+        "vapor fraction stays within 0-1",
+        "polymer pseudo-component remains liquid"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Runs through cached fast service; page navigation reuses existing result.",
+      "ui_entry": "separation page"
+    },
+    {
+      "module_id": "henry_solubility",
+      "display_name": "Gas-liquid solubility and liquid monomer concentration",
+      "category": "mass_transfer",
+      "origin_project": "digital_twin_v3_v4",
+      "implementation": "epdm_sim/solubility.py",
+      "trigger_mode": "auto_cached",
+      "equations": [
+        "C_i_star = H_i(T,solvent,catalyst) * y_i * P",
+        "H_i(T)=H_ref*exp[-dH_sol/R*(1/T-1/T_ref)]"
+      ],
+      "inputs": [
+        "gas mole fraction",
+        "pressure",
+        "temperature",
+        "solvent",
+        "catalyst family"
+      ],
+      "outputs": [
+        "C2/C3/H2 liquid saturation concentration",
+        "solubility diagnostics"
+      ],
+      "validity_range": {
+        "components": "ethylene, propylene, hydrogen",
+        "solvents": "hexane, heptane, toluene"
+      },
+      "engineering_logic": "Reactor kinetics use liquid concentration rather than feed ratio when detailed data are available.",
+      "fallback": "Feed-ratio concentration estimate if Henry data are missing.",
+      "status": "active",
+      "parameters": [
+        "H_ref",
+        "dH_solution",
+        "solvent_factor",
+        "catalyst_family_factor"
+      ],
+      "required_units": {
+        "Cstar": "mol/L",
+        "pressure": "MPa",
+        "temperature": "K"
+      },
+      "mathematical_checks": [
+        "input hash changes invalidate cached output",
+        "finite numeric outputs",
+        "non-negative physical intensive properties where applicable"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "fallback warning if outside model scope"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Runs through cached fast service; page navigation reuses existing result.",
+      "ui_entry": "separation page"
+    },
+    {
+      "module_id": "reactor_kinetics",
+      "display_name": "Apparent terpolymerization kinetics",
+      "category": "reaction",
+      "origin_project": "merged",
+      "implementation": "epdm_sim/kinetics.py, epdm_sim/reactor.py",
+      "trigger_mode": "auto_cached",
+      "equations": [
+        "r_E=k_E*C_E*Cstar",
+        "r_P=k_P*C_P*Cstar",
+        "r_ENB=k_ENB*C_ENB*Cstar/(1+beta_E*C_E/max(C_ENB,tiny))",
+        "Cstar=Ccat*f_AlTi*f_BHT*exp(-kd*tau)"
+      ],
+      "inputs": [
+        "liquid monomer concentrations",
+        "T",
+        "P",
+        "Al/Ti",
+        "BHT",
+        "catalyst rate"
+      ],
+      "outputs": [
+        "conversion",
+        "polymer production",
+        "composition",
+        "reaction heat basis"
+      ],
+      "validity_range": {
+        "purpose": "R&D trend and experiment design",
+        "calibration": "requires catalyst-specific data"
+      },
+      "engineering_logic": "Retains process-simulator apparent kinetics while allowing digital-twin parameter-set calibration.",
+      "fallback": "Default PDF-rule parameter set if calibration fails.",
+      "status": "active",
+      "parameters": [
+        "k_ref",
+        "Ea",
+        "beta_P",
+        "beta_E",
+        "kd_h",
+        "AlTi",
+        "BHT"
+      ],
+      "required_units": {
+        "rate": "mol/L/h",
+        "temperature": "K",
+        "pressure": "MPa",
+        "time": "h"
+      },
+      "mathematical_checks": [
+        "input hash changes invalidate cached output",
+        "finite numeric outputs",
+        "non-negative physical intensive properties where applicable"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "fallback warning if outside model scope",
+        "conversion stays within 0-100%",
+        "consumed monomer mass matches polymer mass"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Runs through cached fast service; page navigation reuses existing result.",
+      "ui_entry": "reactor page"
+    },
+    {
+      "module_id": "dynamic_semibatch_ode",
+      "display_name": "Dynamic batch/semi-batch stirred reactor ODE",
+      "category": "reaction",
+      "origin_project": "digital_twin_v2_v4",
+      "implementation": "epdm_sim/dynamic_reactor.py, epdm_sim/recipe.py",
+      "trigger_mode": "button_manual",
+      "equations": [
+        "dN_i/dt=F_in-F_out+kLa(Cstar-C_liq)V-r_iV",
+        "dT/dt=(Q_rxn-Q_removed+Q_feed+Q_mix)/(M*Cp)",
+        "recipe events modify feed, setpoints and active catalyst"
+      ],
+      "inputs": [
+        "recipe schedule",
+        "ProcessConfig",
+        "parameter set",
+        "heat transfer data"
+      ],
+      "outputs": [
+        "time series",
+        "event log",
+        "runaway warning",
+        "final product KPIs"
+      ],
+      "validity_range": {
+        "scale": "2-5 L pilot screening by default",
+        "solver": "solve_ivp with protected fallback"
+      },
+      "engineering_logic": "Heavy dynamic calculations are explicit-button tasks so sliders do not cause repeated ODE solves.",
+      "fallback": "Fast quasi-dynamic profile if ODE solve fails or detailed mode is not requested.",
+      "status": "active",
+      "parameters": [
+        "recipe",
+        "kLa",
+        "U/A",
+        "PID gains",
+        "feed schedule"
+      ],
+      "required_units": {
+        "rate": "mol/L/h",
+        "temperature": "K",
+        "pressure": "MPa",
+        "time": "h"
+      },
+      "mathematical_checks": [
+        "input hash recorded before run",
+        "task status records runtime/cache/error",
+        "finite numeric outputs or safe fallback"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "fallback warning if outside model scope",
+        "conversion stays within 0-100%",
+        "consumed monomer mass matches polymer mass"
+      ],
+      "computational_cost": "high",
+      "ui_trigger_policy": "Runs only after explicit button click; does not run on page load or slider edit.",
+      "ui_entry": "dynamic reactor page"
+    },
+    {
+      "module_id": "heat_balance",
+      "display_name": "Reaction heat, preheat, devolatilization and cooling margin",
+      "category": "energy",
+      "origin_project": "merged",
+      "implementation": "epdm_sim/heat_balance.py, epdm_sim/safety.py",
+      "trigger_mode": "auto_cached",
+      "equations": [
+        "Q_rxn=-sum(n_i*deltaH_i)",
+        "deltaT_ad=Q_rxn/(M_holdup*Cp)",
+        "Q_removed=U*A*LMTD"
+      ],
+      "inputs": [
+        "monomer consumption",
+        "deltaH",
+        "U",
+        "A",
+        "coolant temperatures",
+        "holdup Cp"
+      ],
+      "outputs": [
+        "Q_rxn",
+        "Q_preheat",
+        "Q_devol",
+        "deltaT_ad",
+        "cooling margin",
+        "safety level"
+      ],
+      "validity_range": {
+        "deltaH": "engineering estimate defaults",
+        "safety": "screening, not calorimeter replacement"
+      },
+      "engineering_logic": "Separates exotherm generation from heat removal capacity and exposes insufficient cooling warnings.",
+      "fallback": "Conservative default Cp and U/A if field data are missing.",
+      "status": "active",
+      "parameters": [
+        "deltaH",
+        "U",
+        "A",
+        "coolant temperatures"
+      ],
+      "required_units": {
+        "heat_duty": "kJ/h or kW",
+        "Cp": "kJ/kg/K",
+        "temperature": "K"
+      },
+      "mathematical_checks": [
+        "input hash changes invalidate cached output",
+        "finite numeric outputs",
+        "non-negative physical intensive properties where applicable"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "fallback warning if outside model scope",
+        "exothermic heat removal duty is positive",
+        "cooling_margin<0 raises warning"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Runs through cached fast service; page navigation reuses existing result.",
+      "ui_entry": "heat/fluid page"
+    },
+    {
+      "module_id": "fluid_rheology_hydraulics",
+      "display_name": "Fluid properties, rheology, pressure drop and pump power",
+      "category": "transport",
+      "origin_project": "merged",
+      "implementation": "epdm_sim/fluid_props.py",
+      "trigger_mode": "auto_cached",
+      "equations": [
+        "rho_mix=m_total/sum(m_i/rho_i)",
+        "mu=mu_solvent*exp(A*s+B*s^2)*(Mw/300000)^alpha",
+        "DeltaP=f*(L/D)*rho*v^2/2"
+      ],
+      "inputs": [
+        "composition",
+        "T",
+        "P",
+        "solids",
+        "Mw",
+        "pipe geometry",
+        "rheology model"
+      ],
+      "outputs": [
+        "density",
+        "Cp",
+        "viscosity",
+        "Re",
+        "pressure drop",
+        "pump power",
+        "fouling index"
+      ],
+      "validity_range": {
+        "rheology": "Newtonian default, power-law/Carreau optional",
+        "hydraulics": "1D pipe screening"
+      },
+      "engineering_logic": "Connects product solids/Mw to heat transfer, transportability and fouling risk.",
+      "fallback": "Newtonian empirical viscosity model.",
+      "status": "active",
+      "parameters": [
+        "A_mu",
+        "B_mu",
+        "alpha_Mw",
+        "E_mu",
+        "rheology model"
+      ],
+      "required_units": {
+        "density": "kg/m3",
+        "viscosity": "Pa.s",
+        "pressure_drop": "kPa"
+      },
+      "mathematical_checks": [
+        "input hash changes invalidate cached output",
+        "finite numeric outputs",
+        "non-negative physical intensive properties where applicable"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "fallback warning if outside model scope",
+        "viscosity increases with solids/Mw",
+        "pressure drop increases with velocity"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Runs through cached fast service; page navigation reuses existing result.",
+      "ui_entry": "heat/fluid page"
+    },
+    {
+      "module_id": "product_properties",
+      "display_name": "Polymer properties and Vistalon-like grade matching",
+      "category": "product",
+      "origin_project": "merged",
+      "implementation": "epdm_sim/polymer_props.py",
+      "trigger_mode": "auto_cached",
+      "equations": [
+        "ln(ML)=a0+a1*ln(Mw/100000)+a2*PDI+a3*C2+a4*ENB+a5*LCB",
+        "1/Tg=sum(w_i/Tg_i)",
+        "score=sum(weighted absolute deviations)"
+      ],
+      "inputs": [
+        "C2/C3/ENB wt%",
+        "Mw",
+        "PDI",
+        "target grade data"
+      ],
+      "outputs": [
+        "Mooney",
+        "Tg",
+        "Tm risk",
+        "closest grade",
+        "adjustment advice"
+      ],
+      "validity_range": {
+        "grade_scope": "R&D Vistalon-like and internal targets",
+        "calibration": "internal experiment regression when available"
+      },
+      "engineering_logic": "Links process variables to product-development decisions instead of only stream tables.",
+      "fallback": "Default coefficients if regression fails.",
+      "status": "active",
+      "parameters": [
+        "Mooney coefficients",
+        "Tg segment values",
+        "grade targets"
+      ],
+      "required_units": {
+        "composition": "wt%",
+        "Mw": "g/mol",
+        "Mooney": "ML(1+4)"
+      },
+      "mathematical_checks": [
+        "input hash changes invalidate cached output",
+        "finite numeric outputs",
+        "non-negative physical intensive properties where applicable"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "fallback warning if outside model scope"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Runs through cached fast service; page navigation reuses existing result.",
+      "ui_entry": "product page"
+    },
+    {
+      "module_id": "parameter_estimation",
+      "display_name": "Parameter estimation and parameter-set versioning",
+      "category": "calibration",
+      "origin_project": "digital_twin_v2_v4",
+      "implementation": "epdm_sim/parameter_estimation.py, data/parameter_sets.json",
+      "trigger_mode": "button_manual",
+      "equations": [
+        "least_squares residual vector with target weights",
+        "confidence proxy from Jacobian covariance or bootstrap fallback"
+      ],
+      "inputs": [
+        "experiment dataset",
+        "target list",
+        "parameter bounds",
+        "model mode"
+      ],
+      "outputs": [
+        "fitted params",
+        "residuals",
+        "metrics",
+        "confidence interval",
+        "correlation"
+      ],
+      "validity_range": {
+        "model_modes": "empirical_proxy, flowsheet_real, dynamic_ode_real, hybrid",
+        "budget": "user-limited max_nfev/max_seconds"
+      },
+      "engineering_logic": "Calibration never overwrites defaults; fitted values are saved as auditable parameter sets.",
+      "fallback": "Default or PDF-rule parameter set on failure.",
+      "status": "active",
+      "parameters": [
+        "bounds",
+        "weights",
+        "max_nfev",
+        "max_seconds"
+      ],
+      "required_units": {
+        "residual": "target units",
+        "parameters": "model units"
+      },
+      "mathematical_checks": [
+        "input hash recorded before run",
+        "task status records runtime/cache/error",
+        "finite numeric outputs or safe fallback"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "fallback warning if outside model scope"
+      ],
+      "computational_cost": "high",
+      "ui_trigger_policy": "Runs only after explicit button click; does not run on page load or slider edit.",
+      "ui_entry": "parameter management page"
+    },
+    {
+      "module_id": "cfd_simple",
+      "display_name": "2D/准3D CFD visualization and diagnostics",
+      "category": "cfd",
+      "origin_project": "merged",
+      "implementation": "epdm_sim/cfd/",
+      "trigger_mode": "button_manual",
+      "equations": [
+        "u field from pipe/STR analytic or FVM approximation",
+        "rho*Cp*u.grad(T)=div(k grad T)+Q_rxn_vol",
+        "fouling=viscosity*wall proximity*low velocity*solids*temperature"
+      ],
+      "inputs": [
+        "geometry",
+        "fluid properties",
+        "heat source",
+        "reaction rates",
+        "boundary conditions"
+      ],
+      "outputs": [
+        "velocity",
+        "temperature",
+        "ENB",
+        "viscosity",
+        "fouling",
+        "dead zone",
+        "wall shear"
+      ],
+      "validity_range": {
+        "mesh": "default <= 80x40 for UI smoothness",
+        "scope": "visual trend and engineering screening"
+      },
+      "engineering_logic": "CFD is decoupled from fast flowsheet and only runs on explicit request.",
+      "fallback": "Analytic field generator if FVM solve fails or optional FEM packages are absent.",
+      "status": "active",
+      "parameters": [
+        "grid",
+        "geometry",
+        "boundary conditions",
+        "heat source"
+      ],
+      "required_units": {
+        "velocity": "m/s",
+        "temperature": "K",
+        "viscosity": "Pa.s"
+      },
+      "mathematical_checks": [
+        "input hash recorded before run",
+        "task status records runtime/cache/error",
+        "finite numeric outputs or safe fallback"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "fallback warning if outside model scope"
+      ],
+      "computational_cost": "high",
+      "ui_trigger_policy": "Runs only after explicit button click; does not run on page load or slider edit.",
+      "ui_entry": "CFD page"
+    },
+    {
+      "module_id": "optimizer_pareto",
+      "display_name": "Sensitivity, optimizer and Pareto process windows",
+      "category": "optimization",
+      "origin_project": "merged",
+      "implementation": "epdm_sim/sensitivity.py, epdm_sim/optimizer.py, epdm_sim/pareto.py",
+      "trigger_mode": "button_manual",
+      "equations": [
+        "objective = weighted KPI loss or maximization target",
+        "feasible if cooling_margin>0, fouling<limit, pressure_drop<limit"
+      ],
+      "inputs": [
+        "bounds",
+        "target grade",
+        "constraints",
+        "ProcessConfig"
+      ],
+      "outputs": [
+        "scan table",
+        "optimized case",
+        "Pareto frontier",
+        "recommended windows"
+      ],
+      "validity_range": {
+        "purpose": "screening and DOE planning",
+        "solver": "scipy optimize plus sampled Pareto"
+      },
+      "engineering_logic": "Optimization is a long task and does not run when users only inspect pages.",
+      "fallback": "Return best feasible sampled point if gradient optimization fails.",
+      "status": "active",
+      "parameters": [
+        "bounds",
+        "constraints",
+        "objective weights"
+      ],
+      "required_units": {
+        "objective": "dimensionless",
+        "constraints": "engineering units"
+      },
+      "mathematical_checks": [
+        "input hash recorded before run",
+        "task status records runtime/cache/error",
+        "finite numeric outputs or safe fallback"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "fallback warning if outside model scope"
+      ],
+      "computational_cost": "high",
+      "ui_trigger_policy": "Runs only after explicit button click; does not run on page load or slider edit.",
+      "ui_entry": "sensitivity/optimization page"
+    },
+    {
+      "module_id": "uncertainty",
+      "display_name": "Model confidence and uncertainty propagation",
+      "category": "risk",
+      "origin_project": "digital_twin_v4",
+      "implementation": "epdm_sim/uncertainty.py",
+      "trigger_mode": "button_manual",
+      "equations": [
+        "Monte Carlo or Latin Hypercube perturbation",
+        "risk probability = count(condition true)/N"
+      ],
+      "inputs": [
+        "uncertainty ranges",
+        "sample count",
+        "seed",
+        "ProcessConfig"
+      ],
+      "outputs": [
+        "KPI confidence interval",
+        "tornado proxy",
+        "risk probabilities"
+      ],
+      "validity_range": {
+        "sample_count": "small interactive runs by default",
+        "confidence": "screening proxy"
+      },
+      "engineering_logic": "Separates deterministic prediction from model trust and risk probability.",
+      "fallback": "Deterministic KPI table if sampling is disabled.",
+      "status": "active",
+      "parameters": [
+        "sample_count",
+        "seed",
+        "input uncertainty ranges"
+      ],
+      "required_units": {
+        "probability": "fraction",
+        "KPI": "model units"
+      },
+      "mathematical_checks": [
+        "input hash recorded before run",
+        "task status records runtime/cache/error",
+        "finite numeric outputs or safe fallback"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "fallback warning if outside model scope"
+      ],
+      "computational_cost": "medium",
+      "ui_trigger_policy": "Runs only after explicit button click; does not run on page load or slider edit.",
+      "ui_entry": "sensitivity/optimization page"
+    },
+    {
+      "module_id": "data_case_report",
+      "display_name": "Experiment data, SQLite, case packages and reports",
+      "category": "data",
+      "origin_project": "digital_twin_v2_v4",
+      "implementation": "epdm_sim/experiment_data.py, epdm_sim/db.py, epdm_sim/case_manager.py, epdm_sim/report.py",
+      "trigger_mode": "data_only",
+      "equations": [
+        "schema validation and quality rules",
+        "case manifest = config hash + parameter set + data snapshot + test status"
+      ],
+      "inputs": [
+        "CSV/Excel/JSON",
+        "SimulationState",
+        "ResultsStore",
+        "task log"
+      ],
+      "outputs": [
+        "quality report",
+        "SQLite records",
+        "case zip",
+        "Excel/Word/PDF report"
+      ],
+      "validity_range": {
+        "storage": "local files and sqlite3",
+        "reporting": "table fallback when kaleido is unavailable"
+      },
+      "engineering_logic": "Keeps simulation results reproducible and auditable without requiring external services.",
+      "fallback": "JSON/CSV export when SQLite or doc image export is not used.",
+      "status": "active",
+      "parameters": [
+        "schema",
+        "case manifest",
+        "task log"
+      ],
+      "required_units": {
+        "schema": "declared units",
+        "hash": "sha1"
+      },
+      "mathematical_checks": [
+        "schema validation before persistence",
+        "content hash for reproducibility"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "fallback warning if outside model scope"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Loads, validates or writes data only when user imports/saves/exports.",
+      "ui_entry": "experiment/case/report pages"
+    },
+    {
+      "module_id": "model_governance_v43",
+      "display_name": "V4.3 conservation, trend rules, IO and UI governance",
+      "category": "governance",
+      "origin_project": "digital_twin_v4_3",
+      "implementation": "epdm_sim/conservation.py, epdm_sim/engineering_rules.py, epdm_sim/io_schema.py, epdm_sim/ui_workflow.py, epdm_sim/ui_audit.py, epdm_sim/model_confidence.py, epdm_sim/reaction_templates.py",
+      "trigger_mode": "button_manual",
+      "equations": [
+        "mass closure = outputs - inputs",
+        "energy release = sum(n_i * abs(deltaH_i))",
+        "confidence score = weighted(data, model, numerical, engineering, calibration, freshness)"
+      ],
+      "inputs": [
+        "FlowsheetResult",
+        "model registry",
+        "engineering rules",
+        "task log",
+        "reaction templates"
+      ],
+      "outputs": [
+        "conservation checks",
+        "engineering rule results",
+        "IO schema",
+        "UI action registry",
+        "model confidence card"
+      ],
+      "validity_range": {
+        "scope": "screening governance layer for process and digital-twin models",
+        "accuracy": "logic and consistency validation, not experimental validation by itself"
+      },
+      "engineering_logic": "Adds conservation closure, trend rules and click-governance checks so modules remain general, auditable and efficient.",
+      "fallback": "Report warnings and table summaries without rerunning heavy models.",
+      "status": "active",
+      "parameters": [
+        "conservation tolerance",
+        "engineering rule tolerance",
+        "confidence score weights",
+        "UI action trigger policy"
+      ],
+      "required_units": {
+        "mass": "kg/h",
+        "energy": "kJ/h or kW",
+        "composition": "wt% or fraction",
+        "runtime": "s"
+      },
+      "mathematical_checks": [
+        "finite outputs",
+        "non-negative flows and properties",
+        "bounded fractions and conversions"
+      ],
+      "chemical_engineering_checks": [
+        "material conservation",
+        "energy release closure",
+        "monotonic trend rules",
+        "manual trigger policy for heavy tasks"
+      ],
+      "computational_cost": "medium",
+      "ui_trigger_policy": "Conservation is lightweight/cached; trend rules and audits run only after explicit diagnostic clicks.",
+      "ui_entry": "performance diagnostics and report pages"
+    },
+    {
+      "module_id": "template_config",
+      "display_name": "Template-native process configuration",
+      "category": "process",
+      "origin_project": "digital_twin",
+      "implementation": "epdm_sim/template_config.py, epdm_sim/feed_adapter.py",
+      "trigger_mode": "auto_cached",
+      "equations": [
+        "template feed map -> component mass/molar feed",
+        "EPDM aliases remain application adapter only"
+      ],
+      "inputs": [
+        "reaction template",
+        "monomer_feeds_kg_h",
+        "chain_transfer_feeds",
+        "solvent/catalyst/process settings"
+      ],
+      "outputs": [
+        "TemplateProcessConfig",
+        "template feed stream",
+        "EPDM compatibility aliases"
+      ],
+      "validity_range": {
+        "scope": "template-aware R&D process configuration",
+        "feeds": "non-negative kg/h or g/h for hydrogen alias"
+      },
+      "engineering_logic": "Moves monomer and chain-transfer feeds out of fixed EPDM fields while retaining EPDM shortcut compatibility.",
+      "fallback": "Unknown template falls back to EPDM template with warning.",
+      "status": "active",
+      "parameters": [
+        "template_id",
+        "monomer molecular weights",
+        "feed aliases"
+      ],
+      "required_units": {
+        "monomer_feeds": "kg/h",
+        "chain_transfer_feeds": "kg/h or g/h for hydrogen alias",
+        "temperature": "degC",
+        "pressure": "MPa"
+      },
+      "mathematical_checks": [
+        "input hash changes invalidate cached output",
+        "non-negative feeds",
+        "finite molecular-weight conversion"
+      ],
+      "chemical_engineering_checks": [
+        "feed monomers must exist in reaction template",
+        "chain transfer agents should exist in reaction template",
+        "mass to mole conversion uses template MW"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Generated from global inputs and cached; no heavy model runs.",
+      "ui_entry": "sidebar/template input panels"
+    },
+    {
+      "module_id": "template_flowsheet",
+      "display_name": "Template-native process flowsheet",
+      "category": "process",
+      "origin_project": "digital_twin",
+      "implementation": "epdm_sim/template_flowsheet.py",
+      "trigger_mode": "auto_cached",
+      "equations": [
+        "template monomer feed -> conversion dict -> segment mass dict",
+        "total mass closure = outlet - inlet"
+      ],
+      "inputs": [
+        "TemplateProcessConfig",
+        "reaction template",
+        "component/property data"
+      ],
+      "outputs": [
+        "TemplateFlowsheetResult",
+        "template KPIs",
+        "application KPIs"
+      ],
+      "validity_range": {
+        "scope": "template screening kernel; EPDM adapter delegates validated legacy path",
+        "temperature_C": "template validity range"
+      },
+      "engineering_logic": "Keeps generic polymerization metrics separate from EPDM/Vistalon application metrics.",
+      "fallback": "EPDM adapter returns legacy FlowsheetResult when template wrapping fails.",
+      "status": "active",
+      "parameters": [
+        "conversion factors",
+        "template heat of polymerization",
+        "segment map"
+      ],
+      "required_units": {
+        "mass_flow": "kg/h",
+        "heat": "kJ/h or kW",
+        "composition": "wt%"
+      },
+      "mathematical_checks": [
+        "input hash changes invalidate cached output",
+        "conversions bounded in [0,1]",
+        "segment composition sums to 100 wt%"
+      ],
+      "chemical_engineering_checks": [
+        "polymer mass equals consumed monomer mass",
+        "polymer pseudo-component remains in liquid/product stream",
+        "mass balance closure within tolerance"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Fast cached model; page navigation reuses current result.",
+      "ui_entry": "dashboard and report template KPI sections"
+    },
+    {
+      "module_id": "template_ode_rhs",
+      "display_name": "Template solve_ivp dynamic reactor RHS",
+      "category": "reactor",
+      "origin_project": "digital_twin",
+      "implementation": "epdm_sim/template_ode_rhs.py, epdm_sim/dynamic_template_reactor.py",
+      "trigger_mode": "button_manual",
+      "equations": [
+        "dN_liq/dt = feed + gas-liquid transfer - reaction",
+        "dM_segment/dt = r_i MW_i",
+        "dT/dt = (Q_rxn - Q_removed)/(M Cp)"
+      ],
+      "inputs": [
+        "reaction template",
+        "state vector",
+        "recipe/config",
+        "kinetic parameters"
+      ],
+      "outputs": [
+        "dynamic profile",
+        "event log",
+        "solver diagnostics"
+      ],
+      "validity_range": {
+        "scope": "R&D dynamic screening with bounded fallback",
+        "time_min": "positive recipe duration"
+      },
+      "engineering_logic": "Uses template monomers/segments as canonical states while exporting EPDM-compatible columns only for EPDM templates.",
+      "fallback": "Explicit bounded integrator when solve_ivp fails or is unavailable.",
+      "status": "active",
+      "parameters": [
+        "k_i",
+        "deltaH_i",
+        "kLa proxy",
+        "UA",
+        "quench/runaway events"
+      ],
+      "required_units": {
+        "moles": "mol",
+        "mass": "kg",
+        "temperature": "K",
+        "pressure": "Pa",
+        "time": "min"
+      },
+      "mathematical_checks": [
+        "finite RHS",
+        "non-negative projected states",
+        "bounded pressure and temperature diagnostics"
+      ],
+      "chemical_engineering_checks": [
+        "polymer mass nondecreasing",
+        "quench drives reaction rates to zero",
+        "heat release scales with monomer consumption"
+      ],
+      "computational_cost": "medium",
+      "ui_trigger_policy": "Runs only when the dynamic-reactor button is clicked through TaskService.",
+      "ui_entry": "dynamic reactor page"
+    },
+    {
+      "module_id": "equation_code_consistency",
+      "display_name": "Equation-code consistency checks",
+      "category": "governance",
+      "origin_project": "digital_twin",
+      "implementation": "epdm_sim/equation_tests.py",
+      "trigger_mode": "auto_cached",
+      "equations": [
+        "registry trend expectations compared against executable functions"
+      ],
+      "inputs": [
+        "equation registry",
+        "core model functions"
+      ],
+      "outputs": [
+        "equation check table",
+        "pass/fail diagnostics"
+      ],
+      "validity_range": {
+        "scope": "mathematical trend sanity checks, not industrial validation"
+      },
+      "engineering_logic": "Prevents README/registry formulas from drifting away from executable code trends.",
+      "fallback": "Failed checks are reported; simulations are not blocked automatically.",
+      "status": "active",
+      "parameters": [
+        "trend check points",
+        "tolerances"
+      ],
+      "required_units": {
+        "equations": "registered SI/engineering units",
+        "outputs": "dimensionless pass/fail"
+      },
+      "mathematical_checks": [
+        "input hash changes invalidate cached output",
+        "finite check values",
+        "expected monotonic trends"
+      ],
+      "chemical_engineering_checks": [
+        "heat release positive for exothermic polymerization",
+        "hydrogen lowers Mw",
+        "viscosity and pressure drop trends are physical"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Lightweight diagnostics used in report and performance panels.",
+      "ui_entry": "report and diagnostics"
+    },
+    {
+      "module_id": "openfoam_export",
+      "display_name": "OpenFOAM/VTK export bridge",
+      "category": "export",
+      "origin_project": "merged",
+      "implementation": "epdm_sim/cfd/openfoam_export.py",
+      "trigger_mode": "export_only",
+      "equations": [
+        "blockMesh pipe skeleton",
+        "simpleFoam/scalarTransportFoam file consistency"
+      ],
+      "inputs": [
+        "CFD geometry",
+        "fluid properties",
+        "boundary conditions"
+      ],
+      "outputs": [
+        "OpenFOAM case zip",
+        "VTK field file",
+        "README_OpenFOAM"
+      ],
+      "validity_range": {
+        "pipe_case": "blockMesh skeleton suitable for local OpenFOAM editing/running",
+        "reactor_case": "industrial skeleton, not a validated stirred-tank mesh"
+      },
+      "engineering_logic": "Provides a path from in-app screening visualization to external CFD validation.",
+      "fallback": "Downloadable skeleton even when OpenFOAM is not installed.",
+      "status": "active",
+      "parameters": [
+        "boundary names",
+        "solver template",
+        "transport properties"
+      ],
+      "required_units": {
+        "case_files": "OpenFOAM/VTK",
+        "boundary": "named patches"
+      },
+      "mathematical_checks": [
+        "export manifest includes source hash",
+        "generated files pass structural validation"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "fallback warning if outside model scope"
+      ],
+      "computational_cost": "medium",
+      "ui_trigger_policy": "Generates files only after user export click.",
+      "ui_entry": "CFD page export panel"
+    },
+    {
+      "required_units": {
+        "residuals": "registered residual units",
+        "score": "0-100"
+      },
+      "mathematical_checks": [
+        "finite penalty",
+        "critical residual rejection",
+        "input hash/cache strategy preserves read-only diagnostics"
+      ],
+      "trigger_mode": "auto_cached",
+      "chemical_engineering_checks": [
+        "mass/energy/phase residuals affect recommendations"
+      ],
+      "ui_entry": "diagnostics/report",
+      "display_name": "Residual objective and filtering",
+      "equations": [
+        "residual_penalty = 100 - residual_score + critical_penalty"
+      ],
+      "outputs": [
+        "residual objective",
+        "DOE/optimizer filter",
+        "diagnostic table"
+      ],
+      "module_id": "residual_objective",
+      "computational_cost": "low",
+      "implementation": "epdm_sim/residual_objective.py",
+      "inputs": [
+        "ResidualSystem",
+        "flowsheet result"
+      ],
+      "parameters": [
+        "minimum residual score",
+        "critical penalty"
+      ],
+      "category": "math_core",
+      "validity_range": {
+        "scope": "ResidualSystem outputs from flowsheet or dynamic models"
+      },
+      "fallback": "If no residual payload is supplied, DOE filter marks final recommendation as requiring model result.",
+      "status": "active",
+      "origin_project": "digital_twin",
+      "ui_trigger_policy": "Lightweight read-only diagnostic; no heavy model rerun."
+    },
+    {
+      "required_units": {
+        "mass": "kg",
+        "pressure": "Pa",
+        "time": "min",
+        "rate": "mol/h",
+        "heat": "kW"
+      },
+      "mathematical_checks": [
+        "finite profile",
+        "nonnegative pressure",
+        "polymer mass nondecreasing",
+        "input hash/cache strategy preserves read-only diagnostics"
+      ],
+      "trigger_mode": "auto_cached",
+      "chemical_engineering_checks": [
+        "quench stops reaction",
+        "heat generation positive for exothermic polymerization"
+      ],
+      "ui_entry": "dynamic reactor/report",
+      "display_name": "Dynamic ODE residual time-series",
+      "equations": [
+        "dynamic accumulation residual",
+        "quench reaction residual",
+        "pressure positivity residual"
+      ],
+      "outputs": [
+        "dynamic residual rows",
+        "dynamic residual acceptance"
+      ],
+      "module_id": "dynamic_residuals",
+      "computational_cost": "low",
+      "implementation": "epdm_sim/dynamic_residuals.py",
+      "inputs": [
+        "DynamicTemplateResult profile"
+      ],
+      "parameters": [
+        "residual tolerances"
+      ],
+      "category": "math_core",
+      "validity_range": {
+        "scope": "dynamic template reactor profiles"
+      },
+      "fallback": "Missing dynamic profile returns warning rows only.",
+      "status": "active",
+      "origin_project": "digital_twin",
+      "ui_trigger_policy": "Uses existing dynamic task result; report does not rerun ODE."
+    },
+    {
+      "required_units": {
+        "pressure": "Pa",
+        "mass_flow": "kg/h",
+        "temperature": "K"
+      },
+      "mathematical_checks": [
+        "finite roots",
+        "positive fugacity coefficient",
+        "bounded vapor fraction",
+        "input hash/cache strategy preserves read-only diagnostics"
+      ],
+      "trigger_mode": "auto_cached",
+      "chemical_engineering_checks": [
+        "polymer nonvolatile",
+        "lower pressure vapor fraction nondecreasing",
+        "higher temperature light recovery nondecreasing"
+      ],
+      "ui_entry": "thermo/report",
+      "display_name": "Phase equilibrium physical constraints",
+      "equations": [
+        "Z vapor >= Z liquid",
+        "K light > K heavy/polymer",
+        "flash mass residual"
+      ],
+      "outputs": [
+        "constraint table",
+        "flash residual table"
+      ],
+      "module_id": "phase_equilibrium_constraints",
+      "computational_cost": "low",
+      "implementation": "epdm_sim/phase_equilibrium_constraints.py",
+      "inputs": [
+        "temperature",
+        "pressure",
+        "flash result"
+      ],
+      "parameters": [
+        "EOS mode",
+        "flash pressure/temperature points"
+      ],
+      "category": "thermo",
+      "validity_range": {
+        "scope": "screening PR/SRK/Wilson flash checks"
+      },
+      "fallback": "Invalid EOS roots are reported as fallback diagnostics.",
+      "status": "active",
+      "origin_project": "digital_twin",
+      "ui_trigger_policy": "Lightweight diagnostic from existing flowsheet result."
+    },
+    {
+      "required_units": {
+        "confidence": "0-100",
+        "benchmark_output": "declared per benchmark"
+      },
+      "mathematical_checks": [
+        "stable data hash",
+        "nonnegative tolerance",
+        "out-of-validity exclusion"
+      ],
+      "trigger_mode": "auto_cached",
+      "chemical_engineering_checks": [
+        "benchmarks linked to equation and residual IDs"
+      ],
+      "ui_entry": "report/model audit",
+      "display_name": "Experimental benchmark metadata and acceptance",
+      "equations": [
+        "benchmark acceptance = hash/status/tolerance/validity checks"
+      ],
+      "outputs": [
+        "benchmark acceptance table",
+        "benchmark confidence score"
+      ],
+      "module_id": "experimental_benchmark",
+      "computational_cost": "low",
+      "implementation": "epdm_sim/experimental_benchmark.py",
+      "inputs": [
+        "data/experimental_benchmarks.json"
+      ],
+      "parameters": [
+        "source_type",
+        "confidence_level",
+        "validity_range"
+      ],
+      "category": "validation",
+      "validity_range": {
+        "scope": "synthetic/literature/experiment/plant benchmark metadata"
+      },
+      "fallback": "Regression snapshots are low-confidence and do not replace experimental calibration.",
+      "status": "active",
+      "origin_project": "digital_twin",
+      "ui_trigger_policy": "Metadata-only check; no heavy model rerun."
+    },
+    {
+      "category": "math_core",
+      "origin_project": "digital_twin",
+      "trigger_mode": "auto_cached",
+      "computational_cost": "low",
+      "status": "active",
+      "validity_range": {
+        "scope": "read-only diagnostics from existing model results"
+      },
+      "ui_trigger_policy": "Lightweight diagnostic; no heavy model rerun.",
+      "fallback": "Missing payload returns not_run/warning rows instead of running heavy tasks.",
+      "chemical_engineering_checks": [
+        "mass/energy residuals respected",
+        "validity range respected",
+        "fallback diagnostics recorded"
+      ],
+      "parameters": [
+        "residual tolerances",
+        "confidence weights"
+      ],
+      "module_id": "residual_solver",
+      "display_name": "Residual solver and correction trace",
+      "implementation": "epdm_sim/residual_solver.py",
+      "inputs": [
+        "ResidualSystem"
+      ],
+      "outputs": [
+        "weighted residual objective",
+        "bounded correction trace"
+      ],
+      "equations": [
+        "residual objective",
+        "bounded correction trace"
+      ],
+      "required_units": {
+        "residuals": "registered units",
+        "score": "0-100"
+      },
+      "mathematical_checks": [
+        "finite outputs",
+        "critical residual rejection",
+        "input hash/cache strategy preserves read-only diagnostics"
+      ],
+      "ui_entry": "diagnostics/report"
+    },
+    {
+      "category": "math_core",
+      "origin_project": "digital_twin",
+      "trigger_mode": "auto_cached",
+      "computational_cost": "low",
+      "status": "active",
+      "validity_range": {
+        "scope": "read-only diagnostics from existing model results"
+      },
+      "ui_trigger_policy": "Lightweight diagnostic; no heavy model rerun.",
+      "fallback": "Missing payload returns not_run/warning rows instead of running heavy tasks.",
+      "chemical_engineering_checks": [
+        "mass/energy residuals respected",
+        "validity range respected",
+        "fallback diagnostics recorded"
+      ],
+      "parameters": [
+        "residual tolerances",
+        "confidence weights"
+      ],
+      "module_id": "benchmark_calibration",
+      "display_name": "Benchmark calibration and data-gap scoring",
+      "implementation": "epdm_sim/benchmark_calibration.py",
+      "inputs": [
+        "experimental benchmarks",
+        "model outputs"
+      ],
+      "outputs": [
+        "weighted benchmark residuals",
+        "data gap recommendations"
+      ],
+      "equations": [
+        "benchmark weighted residual",
+        "confidence-weighted validation score"
+      ],
+      "required_units": {
+        "benchmark_output": "declared units",
+        "confidence": "0-1"
+      },
+      "mathematical_checks": [
+        "finite outputs",
+        "critical residual rejection",
+        "input hash/cache strategy preserves read-only diagnostics"
+      ],
+      "ui_entry": "diagnostics/report"
+    },
+    {
+      "category": "math_core",
+      "origin_project": "digital_twin",
+      "trigger_mode": "auto_cached",
+      "computational_cost": "low",
+      "status": "active",
+      "validity_range": {
+        "scope": "read-only diagnostics from existing model results"
+      },
+      "ui_trigger_policy": "Lightweight diagnostic; no heavy model rerun.",
+      "fallback": "Missing payload returns not_run/warning rows instead of running heavy tasks.",
+      "chemical_engineering_checks": [
+        "mass/energy residuals respected",
+        "validity range respected",
+        "fallback diagnostics recorded"
+      ],
+      "parameters": [
+        "residual tolerances",
+        "confidence weights"
+      ],
+      "module_id": "dynamic_rhs_residual_coupling",
+      "display_name": "Dynamic RHS residual coupling",
+      "implementation": "epdm_sim/dynamic_core/rhs_terms.py",
+      "inputs": [
+        "dynamic profile",
+        "RHS terms"
+      ],
+      "outputs": [
+        "RHS term diagnostics",
+        "residual time series acceptance"
+      ],
+      "equations": [
+        "accumulation = RHS term sum",
+        "quench residual"
+      ],
+      "required_units": {
+        "time": "min",
+        "rate": "mol/h",
+        "heat": "kW",
+        "pressure": "Pa"
+      },
+      "mathematical_checks": [
+        "finite outputs",
+        "critical residual rejection",
+        "input hash/cache strategy preserves read-only diagnostics"
+      ],
+      "ui_entry": "diagnostics/report"
+    },
+    {
+      "category": "governance",
+      "origin_project": "digital_twin",
+      "trigger_mode": "auto_cached",
+      "validity_range": {
+        "scope": "V5.6 release-gate scientific governance"
+      },
+      "engineering_logic": "Keeps calibration and scientific credibility checks explicit without running hidden heavy tasks.",
+      "fallback": "Report not_run/low-confidence status when source data are absent.",
+      "status": "active",
+      "parameters": [
+        "precomputed results",
+        "registered metadata"
+      ],
+      "required_units": {
+        "inputs": "declared model units",
+        "outputs": "registered report units"
+      },
+      "mathematical_checks": [
+        "input hash and metadata consistency checks",
+        "finite bounded score outputs"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "residual acceptance respected"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Runs only through explicit audit/report/release-gate commands; page navigation is read-only.",
+      "ui_entry": "model audit/report diagnostics",
+      "module_id": "data_lineage",
+      "display_name": "Benchmark and calibration data lineage",
+      "implementation": "epdm_sim/data_lineage.py",
+      "equations": [
+        "lineage confidence = f(source_type, source_reference, unit, validity)"
+      ],
+      "inputs": [
+        "benchmark/calibration metadata"
+      ],
+      "outputs": [
+        "lineage table",
+        "lineage confidence score"
+      ]
+    },
+    {
+      "category": "governance",
+      "origin_project": "digital_twin",
+      "trigger_mode": "auto_cached",
+      "validity_range": {
+        "scope": "V5.6 release-gate scientific governance"
+      },
+      "engineering_logic": "Keeps calibration and scientific credibility checks explicit without running hidden heavy tasks.",
+      "fallback": "Report not_run/low-confidence status when source data are absent.",
+      "status": "active",
+      "parameters": [
+        "precomputed results",
+        "registered metadata"
+      ],
+      "required_units": {
+        "inputs": "declared model units",
+        "outputs": "registered report units"
+      },
+      "mathematical_checks": [
+        "input hash and metadata consistency checks",
+        "finite bounded score outputs"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "residual acceptance respected"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Runs only through explicit audit/report/release-gate commands; page navigation is read-only.",
+      "ui_entry": "model audit/report diagnostics",
+      "module_id": "residual_constrained_fit",
+      "display_name": "Residual-constrained parameter fitting objective",
+      "implementation": "epdm_sim/estimation/residual_constrained_fit.py",
+      "equations": [
+        "objective = data residual + physical residual penalties + prior + validity penalty"
+      ],
+      "inputs": [
+        "target data",
+        "ResidualSystem",
+        "parameter constraints"
+      ],
+      "outputs": [
+        "fit acceptance",
+        "residual breakdown"
+      ]
+    },
+    {
+      "category": "governance",
+      "origin_project": "digital_twin",
+      "trigger_mode": "auto_cached",
+      "validity_range": {
+        "scope": "V5.6 release-gate scientific governance"
+      },
+      "engineering_logic": "Keeps calibration and scientific credibility checks explicit without running hidden heavy tasks.",
+      "fallback": "Report not_run/low-confidence status when source data are absent.",
+      "status": "active",
+      "parameters": [
+        "precomputed results",
+        "registered metadata"
+      ],
+      "required_units": {
+        "inputs": "declared model units",
+        "outputs": "registered report units"
+      },
+      "mathematical_checks": [
+        "input hash and metadata consistency checks",
+        "finite bounded score outputs"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "residual acceptance respected"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Runs only through explicit audit/report/release-gate commands; page navigation is read-only.",
+      "ui_entry": "model audit/report diagnostics",
+      "module_id": "posterior_residual_filter",
+      "display_name": "Posterior residual acceptance filter",
+      "implementation": "epdm_sim/posterior_residual_filter.py",
+      "equations": [
+        "accepted = bounds pass and residual critical count == 0"
+      ],
+      "inputs": [
+        "posterior samples",
+        "ResidualSystem"
+      ],
+      "outputs": [
+        "residual acceptance rate",
+        "sample filter table"
+      ]
+    },
+    {
+      "category": "governance",
+      "origin_project": "digital_twin",
+      "trigger_mode": "auto_cached",
+      "validity_range": {
+        "scope": "V5.6 release-gate scientific governance"
+      },
+      "engineering_logic": "Keeps calibration and scientific credibility checks explicit without running hidden heavy tasks.",
+      "fallback": "Report not_run/low-confidence status when source data are absent.",
+      "status": "active",
+      "parameters": [
+        "precomputed results",
+        "registered metadata"
+      ],
+      "required_units": {
+        "inputs": "declared model units",
+        "outputs": "registered report units"
+      },
+      "mathematical_checks": [
+        "input hash and metadata consistency checks",
+        "finite bounded score outputs"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "residual acceptance respected"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Runs only through explicit audit/report/release-gate commands; page navigation is read-only.",
+      "ui_entry": "model audit/report diagnostics",
+      "module_id": "equation_reverse_check",
+      "display_name": "Code-to-registry equation reverse checks",
+      "implementation": "epdm_sim/equation_reverse_check.py",
+      "equations": [
+        "implementation output must satisfy registry units/trends/benchmarks/residual links"
+      ],
+      "inputs": [
+        "equation registry",
+        "implementation functions"
+      ],
+      "outputs": [
+        "reverse check table"
+      ]
+    },
+    {
+      "category": "governance",
+      "origin_project": "digital_twin",
+      "trigger_mode": "auto_cached",
+      "validity_range": {
+        "scope": "V5.6 release-gate scientific governance"
+      },
+      "engineering_logic": "Keeps calibration and scientific credibility checks explicit without running hidden heavy tasks.",
+      "fallback": "Report not_run/low-confidence status when source data are absent.",
+      "status": "active",
+      "parameters": [
+        "precomputed results",
+        "registered metadata"
+      ],
+      "required_units": {
+        "inputs": "declared model units",
+        "outputs": "registered report units"
+      },
+      "mathematical_checks": [
+        "input hash and metadata consistency checks",
+        "finite bounded score outputs"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "residual acceptance respected"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Runs only through explicit audit/report/release-gate commands; page navigation is read-only.",
+      "ui_entry": "model audit/report diagnostics",
+      "module_id": "dynamic_residual_feedback",
+      "display_name": "Dynamic residual feedback for solver diagnostics",
+      "implementation": "epdm_sim/dynamic_core/residual_feedback.py",
+      "equations": [
+        "solver warning = f(dynamic residual severity)"
+      ],
+      "inputs": [
+        "dynamic profile",
+        "solver summary"
+      ],
+      "outputs": [
+        "residual feedback table",
+        "solver residual status"
+      ]
+    },
+    {
+      "category": "governance",
+      "origin_project": "digital_twin",
+      "trigger_mode": "auto_cached",
+      "validity_range": {
+        "scope": "V5.6 release-gate scientific governance"
+      },
+      "engineering_logic": "Keeps calibration and scientific credibility checks explicit without running hidden heavy tasks.",
+      "fallback": "Report not_run/low-confidence status when source data are absent.",
+      "status": "active",
+      "parameters": [
+        "precomputed results",
+        "registered metadata"
+      ],
+      "required_units": {
+        "inputs": "declared model units",
+        "outputs": "registered report units"
+      },
+      "mathematical_checks": [
+        "input hash and metadata consistency checks",
+        "finite bounded score outputs"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "residual acceptance respected"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Runs only through explicit audit/report/release-gate commands; page navigation is read-only.",
+      "ui_entry": "model audit/report diagnostics",
+      "module_id": "calibrated_property_models",
+      "display_name": "Calibrated property-model records",
+      "implementation": "epdm_sim/calibrated_property_models.py",
+      "equations": [
+        "confidence = f(source_type, residual metrics, uncertainty)"
+      ],
+      "inputs": [
+        "property calibration results"
+      ],
+      "outputs": [
+        "calibrated property set",
+        "confidence score"
+      ]
+    },
+    {
+      "category": "governance",
+      "origin_project": "digital_twin",
+      "trigger_mode": "auto_cached",
+      "validity_range": {
+        "scope": "V5.7 release-gate scientific governance"
+      },
+      "engineering_logic": "Keeps equation, residual, benchmark and calibrated-property checks explicit without running hidden heavy tasks.",
+      "fallback": "Report not_run/low-confidence status when source data are absent.",
+      "status": "active",
+      "parameters": [
+        "precomputed results",
+        "registered metadata"
+      ],
+      "required_units": {
+        "inputs": "declared model units",
+        "outputs": "registered report units"
+      },
+      "mathematical_checks": [
+        "input hash/cache consistency checks",
+        "finite bounded score outputs",
+        "residual and benchmark consistency checks"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "residual acceptance respected"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Runs only through explicit audit/report/release-gate commands; page navigation is read-only.",
+      "ui_entry": "model audit/report diagnostics",
+      "module_id": "equation_residual_coupling",
+      "display_name": "Equation-residual-code coupling",
+      "implementation": "epdm_sim/equation_residual_coupling.py",
+      "equations": [
+        "equation-code-residual coupling = complete metadata and trend checks"
+      ],
+      "inputs": [
+        "equation registry",
+        "residual registry"
+      ],
+      "outputs": [
+        "coupling table",
+        "failed count"
+      ]
+    },
+    {
+      "category": "governance",
+      "origin_project": "digital_twin",
+      "trigger_mode": "auto_cached",
+      "validity_range": {
+        "scope": "V5.7 release-gate scientific governance"
+      },
+      "engineering_logic": "Keeps equation, residual, benchmark and calibrated-property checks explicit without running hidden heavy tasks.",
+      "fallback": "Report not_run/low-confidence status when source data are absent.",
+      "status": "active",
+      "parameters": [
+        "precomputed results",
+        "registered metadata"
+      ],
+      "required_units": {
+        "inputs": "declared model units",
+        "outputs": "registered report units"
+      },
+      "mathematical_checks": [
+        "input hash/cache consistency checks",
+        "finite bounded score outputs",
+        "residual and benchmark consistency checks"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "residual acceptance respected"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Runs only through explicit audit/report/release-gate commands; page navigation is read-only.",
+      "ui_entry": "model audit/report diagnostics",
+      "module_id": "residual_acceptance",
+      "display_name": "Residual acceptance policy",
+      "implementation": "epdm_sim/residual_acceptance.py",
+      "equations": [
+        "acceptance = f(residual score, critical residual count)"
+      ],
+      "inputs": [
+        "ResidualSystem"
+      ],
+      "outputs": [
+        "acceptance table",
+        "rejection status"
+      ]
+    },
+    {
+      "category": "governance",
+      "origin_project": "digital_twin",
+      "trigger_mode": "auto_cached",
+      "validity_range": {
+        "scope": "V5.7 release-gate scientific governance"
+      },
+      "engineering_logic": "Keeps equation, residual, benchmark and calibrated-property checks explicit without running hidden heavy tasks.",
+      "fallback": "Report not_run/low-confidence status when source data are absent.",
+      "status": "active",
+      "parameters": [
+        "precomputed results",
+        "registered metadata"
+      ],
+      "required_units": {
+        "inputs": "declared model units",
+        "outputs": "registered report units"
+      },
+      "mathematical_checks": [
+        "input hash/cache consistency checks",
+        "finite bounded score outputs",
+        "residual and benchmark consistency checks"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "residual acceptance respected"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Runs only through explicit audit/report/release-gate commands; page navigation is read-only.",
+      "ui_entry": "model audit/report diagnostics",
+      "module_id": "dynamic_stability_checks",
+      "display_name": "Proof-style dynamic stability checks",
+      "implementation": "epdm_sim/dynamic_core/stability_checks.py",
+      "equations": [
+        "stability = finite/nonnegative/monotonic/residual-feedback checks"
+      ],
+      "inputs": [
+        "dynamic profile",
+        "solver summary"
+      ],
+      "outputs": [
+        "stability table",
+        "stiffness indicator"
+      ]
+    },
+    {
+      "category": "governance",
+      "origin_project": "digital_twin",
+      "trigger_mode": "auto_cached",
+      "validity_range": {
+        "scope": "V5.7 release-gate scientific governance"
+      },
+      "engineering_logic": "Keeps equation, residual, benchmark and calibrated-property checks explicit without running hidden heavy tasks.",
+      "fallback": "Report not_run/low-confidence status when source data are absent.",
+      "status": "active",
+      "parameters": [
+        "precomputed results",
+        "registered metadata"
+      ],
+      "required_units": {
+        "inputs": "declared model units",
+        "outputs": "registered report units"
+      },
+      "mathematical_checks": [
+        "input hash/cache consistency checks",
+        "finite bounded score outputs",
+        "residual and benchmark consistency checks"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "residual acceptance respected"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Runs only through explicit audit/report/release-gate commands; page navigation is read-only.",
+      "ui_entry": "model audit/report diagnostics",
+      "module_id": "benchmark_source_registry",
+      "display_name": "Benchmark source registry",
+      "implementation": "epdm_sim/benchmark_source_registry.py",
+      "equations": [
+        "source confidence = f(source_type, reference, validity, review status)"
+      ],
+      "inputs": [
+        "benchmark source metadata"
+      ],
+      "outputs": [
+        "source registry table",
+        "critical release eligibility"
+      ]
+    },
+    {
+      "category": "governance",
+      "origin_project": "digital_twin",
+      "trigger_mode": "auto_cached",
+      "validity_range": {
+        "scope": "V5.7 release-gate scientific governance"
+      },
+      "engineering_logic": "Keeps equation, residual, benchmark and calibrated-property checks explicit without running hidden heavy tasks.",
+      "fallback": "Report not_run/low-confidence status when source data are absent.",
+      "status": "active",
+      "parameters": [
+        "precomputed results",
+        "registered metadata"
+      ],
+      "required_units": {
+        "inputs": "declared model units",
+        "outputs": "registered report units"
+      },
+      "mathematical_checks": [
+        "input hash/cache consistency checks",
+        "finite bounded score outputs",
+        "residual and benchmark consistency checks"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "residual acceptance respected"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Runs only through explicit audit/report/release-gate commands; page navigation is read-only.",
+      "ui_entry": "model audit/report diagnostics",
+      "module_id": "calibrated_property_usage",
+      "display_name": "Calibrated property model usage",
+      "implementation": "epdm_sim/calibrated_property_models.py",
+      "equations": [
+        "selected property model = argmax confidence within validity range"
+      ],
+      "inputs": [
+        "calibrated property records",
+        "conditions"
+      ],
+      "outputs": [
+        "usage table",
+        "selected confidence"
+      ]
+    },
+    {
+      "category": "governance",
+      "origin_project": "digital_twin",
+      "trigger_mode": "auto_cached",
+      "validity_range": {
+        "scope": "V5.7 release-gate scientific governance"
+      },
+      "engineering_logic": "Keeps equation, residual, benchmark and calibrated-property checks explicit without running hidden heavy tasks.",
+      "fallback": "Report not_run/low-confidence status when source data are absent.",
+      "status": "active",
+      "parameters": [
+        "precomputed results",
+        "registered metadata"
+      ],
+      "required_units": {
+        "inputs": "declared model units",
+        "outputs": "registered report units"
+      },
+      "mathematical_checks": [
+        "input hash/cache consistency checks",
+        "finite bounded score outputs",
+        "residual and benchmark consistency checks"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "residual acceptance respected"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Runs only through explicit audit/report/release-gate commands; page navigation is read-only.",
+      "ui_entry": "model audit/report diagnostics",
+      "module_id": "math_core",
+      "display_name": "Layered math core",
+      "implementation": "epdm_sim/math_core",
+      "equations": [
+        "acceptance = equations AND residuals AND constraints"
+      ],
+      "inputs": [
+        "equations",
+        "residuals",
+        "constraints"
+      ],
+      "outputs": [
+        "math-core acceptance",
+        "diagnostics"
+      ]
+    },
+    {
+      "category": "governance",
+      "origin_project": "digital_twin",
+      "trigger_mode": "auto_cached",
+      "validity_range": {
+        "scope": "V5.7 release-gate scientific governance"
+      },
+      "engineering_logic": "Keeps equation, residual, benchmark and calibrated-property checks explicit without running hidden heavy tasks.",
+      "fallback": "Report not_run/low-confidence status when source data are absent.",
+      "status": "active",
+      "parameters": [
+        "precomputed results",
+        "registered metadata"
+      ],
+      "required_units": {
+        "inputs": "declared model units",
+        "outputs": "registered report units"
+      },
+      "mathematical_checks": [
+        "input hash/cache consistency checks",
+        "finite bounded score outputs",
+        "residual and benchmark consistency checks"
+      ],
+      "chemical_engineering_checks": [
+        "unit consistency",
+        "validity range respected",
+        "residual acceptance respected"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "Runs only through explicit audit/report/release-gate commands; page navigation is read-only.",
+      "ui_entry": "model audit/report diagnostics",
+      "module_id": "solver_core",
+      "display_name": "Residual-aware solver core",
+      "implementation": "epdm_sim/solver_core",
+      "equations": [
+        "fallback = f(solver failure, residual acceptance, residual penalty)"
+      ],
+      "inputs": [
+        "state vector",
+        "ResidualSystem"
+      ],
+      "outputs": [
+        "solver status",
+        "fallback recommendation"
+      ]
+    },
+    {
+      "module_id": "model_traceability_graph",
+      "display_name": "Model traceability graph",
+      "category": "math_core_governance",
+      "origin_project": "V6.0 industrial math core",
+      "implementation": "epdm_sim.model_graph.model_traceability_dataframe",
+      "trigger_mode": "auto_cached",
+      "equations": [
+        "equation-residual-data traceability",
+        "residual-constrained acceptance"
+      ],
+      "inputs": [
+        "equation_registry",
+        "ResidualSystem",
+        "data_lineage",
+        "model_outputs"
+      ],
+      "outputs": [
+        "traceability_table",
+        "failed_links"
+      ],
+      "parameters": [],
+      "required_units": {
+        "residuals": "registered residual units",
+        "confidence_score": "0-100",
+        "dynamic_state": "SI/project units"
+      },
+      "validity_range": {
+        "scope": "V6.0 release-gate industrial math governance"
+      },
+      "mathematical_checks": [
+        "finite bounded outputs",
+        "input hash/cache consistency checks",
+        "direct callable coverage"
+      ],
+      "chemical_engineering_checks": [
+        "mass/energy residual awareness",
+        "unit-aware model governance"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "read-only report/audit gate",
+      "ui_entry": "diagnostics/report",
+      "engineering_logic": "Does not rerun heavy models; audits existing results and metadata.",
+      "fallback": "returns failed acceptance rows when metadata is missing",
+      "status": "active"
+    },
+    {
+      "module_id": "constrained_solver",
+      "display_name": "Constrained solver certificate",
+      "category": "math_core_governance",
+      "origin_project": "V6.0 industrial math core",
+      "implementation": "epdm_sim.solver_core.constrained_solver.constrained_solver_dataframe",
+      "trigger_mode": "auto_cached",
+      "equations": [
+        "equation-residual-data traceability",
+        "residual-constrained acceptance"
+      ],
+      "inputs": [
+        "equation_registry",
+        "ResidualSystem",
+        "data_lineage",
+        "model_outputs"
+      ],
+      "outputs": [
+        "solver_certificate",
+        "accepted"
+      ],
+      "parameters": [],
+      "required_units": {
+        "residuals": "registered residual units",
+        "confidence_score": "0-100",
+        "dynamic_state": "SI/project units"
+      },
+      "validity_range": {
+        "scope": "V6.0 release-gate industrial math governance"
+      },
+      "mathematical_checks": [
+        "finite bounded outputs",
+        "input hash/cache consistency checks",
+        "direct callable coverage"
+      ],
+      "chemical_engineering_checks": [
+        "mass/energy residual awareness",
+        "unit-aware model governance"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "read-only report/audit gate",
+      "ui_entry": "diagnostics/report",
+      "engineering_logic": "Does not rerun heavy models; audits existing results and metadata.",
+      "fallback": "returns failed acceptance rows when metadata is missing",
+      "status": "active"
+    },
+    {
+      "module_id": "dae_state_invariants",
+      "display_name": "DAE/state invariant diagnostics",
+      "category": "math_core_governance",
+      "origin_project": "V6.0 industrial math core",
+      "implementation": "epdm_sim.dynamic_core.state_invariants.state_invariants_dataframe",
+      "trigger_mode": "auto_cached",
+      "equations": [
+        "equation-residual-data traceability",
+        "residual-constrained acceptance"
+      ],
+      "inputs": [
+        "equation_registry",
+        "ResidualSystem",
+        "data_lineage",
+        "model_outputs"
+      ],
+      "outputs": [
+        "dae_constraints",
+        "state_invariants"
+      ],
+      "parameters": [],
+      "required_units": {
+        "residuals": "registered residual units",
+        "confidence_score": "0-100",
+        "dynamic_state": "SI/project units"
+      },
+      "validity_range": {
+        "scope": "V6.0 release-gate industrial math governance"
+      },
+      "mathematical_checks": [
+        "finite bounded outputs",
+        "input hash/cache consistency checks",
+        "direct callable coverage"
+      ],
+      "chemical_engineering_checks": [
+        "mass/energy residual awareness",
+        "unit-aware model governance"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "read-only report/audit gate",
+      "ui_entry": "diagnostics/report",
+      "engineering_logic": "Does not rerun heavy models; audits existing results and metadata.",
+      "fallback": "returns failed acceptance rows when metadata is missing",
+      "status": "active"
+    },
+    {
+      "module_id": "model_confidence_engine",
+      "display_name": "Evidence-weighted model confidence engine",
+      "category": "math_core_governance",
+      "origin_project": "V6.0 industrial math core",
+      "implementation": "epdm_sim.model_confidence_engine.model_confidence_engine_dataframe",
+      "trigger_mode": "auto_cached",
+      "equations": [
+        "equation-residual-data traceability",
+        "residual-constrained acceptance"
+      ],
+      "inputs": [
+        "equation_registry",
+        "ResidualSystem",
+        "data_lineage",
+        "model_outputs"
+      ],
+      "outputs": [
+        "overall_score",
+        "confidence_decomposition"
+      ],
+      "parameters": [],
+      "required_units": {
+        "residuals": "registered residual units",
+        "confidence_score": "0-100",
+        "dynamic_state": "SI/project units"
+      },
+      "validity_range": {
+        "scope": "V6.0 release-gate industrial math governance"
+      },
+      "mathematical_checks": [
+        "finite bounded outputs",
+        "input hash/cache consistency checks",
+        "direct callable coverage"
+      ],
+      "chemical_engineering_checks": [
+        "mass/energy residual awareness",
+        "unit-aware model governance"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "read-only report/audit gate",
+      "ui_entry": "diagnostics/report",
+      "engineering_logic": "Does not rerun heavy models; audits existing results and metadata.",
+      "fallback": "returns failed acceptance rows when metadata is missing",
+      "status": "active"
+    },
+    {
+      "module_id": "property_model_selector",
+      "display_name": "Calibrated property model selector",
+      "category": "math_core_governance",
+      "origin_project": "V6.0 industrial math core",
+      "implementation": "epdm_sim.property_model_selector.property_model_selection_dataframe",
+      "trigger_mode": "auto_cached",
+      "equations": [
+        "equation-residual-data traceability",
+        "residual-constrained acceptance"
+      ],
+      "inputs": [
+        "equation_registry",
+        "ResidualSystem",
+        "data_lineage",
+        "model_outputs"
+      ],
+      "outputs": [
+        "selected_model",
+        "within_validity"
+      ],
+      "parameters": [],
+      "required_units": {
+        "residuals": "registered residual units",
+        "confidence_score": "0-100",
+        "dynamic_state": "SI/project units"
+      },
+      "validity_range": {
+        "scope": "V6.0 release-gate industrial math governance"
+      },
+      "mathematical_checks": [
+        "finite bounded outputs",
+        "input hash/cache consistency checks",
+        "direct callable coverage"
+      ],
+      "chemical_engineering_checks": [
+        "mass/energy residual awareness",
+        "unit-aware model governance"
+      ],
+      "computational_cost": "low",
+      "ui_trigger_policy": "read-only report/audit gate",
+      "ui_entry": "diagnostics/report",
+      "engineering_logic": "Does not rerun heavy models; audits existing results and metadata.",
+      "fallback": "returns failed acceptance rows when metadata is missing",
+      "status": "active"
+    }
+  ]
+}
+

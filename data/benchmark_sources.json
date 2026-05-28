@@ -1,0 +1,46 @@
+[
+  {
+    "benchmark_id": "exp_flash_mass_closure_default",
+    "source_type": "synthetic",
+    "source_reference": "V5.7 synthetic conservation benchmark derived from default EPDM flash material balance",
+    "measurement_unit": "kg/h residual",
+    "uncertainty": 1e-6,
+    "validity_range": "V5.7 default EPDM screening envelope",
+    "confidence_level": "medium",
+    "data_hash": "auto",
+    "review_status": "reviewed"
+  },
+  {
+    "benchmark_id": "lit_henry_pressure_monotonic",
+    "source_type": "literature",
+    "source_reference": "Generic Henry-law monotonicity constraint for light olefin dissolution in hydrocarbon solvent; replace with measured local VLE when available",
+    "measurement_unit": "mol/L",
+    "uncertainty": 0.0,
+    "validity_range": "0.5-1.5 MPa; 373.15 K screening",
+    "confidence_level": "medium",
+    "data_hash": "auto",
+    "review_status": "reviewed"
+  },
+  {
+    "benchmark_id": "plant_placeholder_mooney_window",
+    "source_type": "plant",
+    "source_reference": "Internal_1109_2_commercial_candidate application target window metadata; raw plant historian data not bundled",
+    "measurement_unit": "ML(1+4)",
+    "uncertainty": 5.0,
+    "validity_range": "EPDM/Vistalon application adapter only",
+    "confidence_level": "plant",
+    "data_hash": "auto",
+    "review_status": "reviewed"
+  },
+  {
+    "benchmark_id": "regression_snapshot_dynamic_quench",
+    "source_type": "regression_snapshot",
+    "source_reference": "V5.7 short explicit_bounded dynamic quench regression snapshot",
+    "measurement_unit": "mol/h",
+    "uncertainty": 1e-8,
+    "validity_range": "dynamic template smoke only",
+    "confidence_level": "low",
+    "data_hash": "auto",
+    "review_status": "reviewed"
+  }
+]

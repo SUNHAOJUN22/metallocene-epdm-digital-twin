@@ -1,0 +1,13 @@
+{
+  "metadata": {
+    "version": "V4",
+    "description": "Default engineering binary interaction parameters for PR/SRK EOS trend calculations. Values are placeholders for R&D screening and must be calibrated with VLE data."
+  },
+  "pairs": [
+    {"component_i": "ethylene", "component_j": "hexane", "kij": 0.035, "source": "default_estimate"},
+    {"component_i": "propylene", "component_j": "hexane", "kij": 0.030, "source": "default_estimate"},
+    {"component_i": "hydrogen", "component_j": "hexane", "kij": 0.120, "source": "default_estimate"},
+    {"component_i": "ENB", "component_j": "hexane", "kij": 0.020, "source": "default_estimate"},
+    {"component_i": "ethylene", "component_j": "propylene", "kij": 0.010, "source": "default_estimate"}
+  ]
+}

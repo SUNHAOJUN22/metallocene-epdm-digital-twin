@@ -1,0 +1,4 @@
+#!/usr/bin/env python
+from dev_tasks import main_alias
+raise SystemExit(main_alias("test-lint"))
+

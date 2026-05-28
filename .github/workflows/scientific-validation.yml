@@ -1,0 +1,25 @@
+name: Scientific Validation
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  scientific-validation:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run scientific validation tests
+        run: python scripts/dev_tasks.py test-science
+      - name: Run unit system tests
+        run: python scripts/dev_tasks.py test-units
+      - name: Run file safety tests
+        run: python scripts/dev_tasks.py test-security
+

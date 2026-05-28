@@ -1,0 +1,66 @@
+{
+  "version": "V4.5",
+  "default_template_id": "EPDM_EPM_metallocene_solution",
+  "templates": [
+    {
+      "template_id": "EPDM_EPM_metallocene_solution",
+      "monomers": ["ethylene", "propylene", "ENB"],
+      "polymer_segments": {"ethylene": "E", "propylene": "P", "ENB": "D"},
+      "molecular_weights": {"ethylene": 28.054, "propylene": 42.081, "ENB": 120.19},
+      "rate_law": "r_i = k_i(T,P,C) * C_i_liq * Cstar; ENB uses pressure and ethylene competition corrections",
+      "heat_of_polymerization": {"ethylene": -95.0, "propylene": -85.0, "ENB": -80.0},
+      "chain_transfer_agents": ["hydrogen"],
+      "catalyst_family": "metallocene/MAO apparent",
+      "property_model": {
+        "model_id": "epdm_empirical_v1",
+        "composition_basis": "wt_percent_E_P_D",
+        "molecular_weight_model": "hydrogen_chain_transfer_empirical",
+        "viscosity_model": "epdm_solution_viscosity",
+        "thermal_model": "fox_tg_with_enb_correction",
+        "crystallization_model": "ethylene_content_heuristic",
+        "mooney_model": "log_mooney_mw_pdi_composition"
+      },
+      "validity_range": {"temperature_C": "60-180", "pressure_MPa": "0.1-5", "solvent": "hexane/heptane/toluene"}
+    },
+    {
+      "template_id": "generic_solution_copolymerization",
+      "monomers": ["monomer_A", "monomer_B"],
+      "polymer_segments": {"monomer_A": "A", "monomer_B": "B"},
+      "molecular_weights": {"monomer_A": 100.0, "monomer_B": 100.0},
+      "rate_law": "r_i = k_i * C_i * C_active",
+      "heat_of_polymerization": {"monomer_A": -80.0, "monomer_B": -80.0},
+      "chain_transfer_agents": ["chain_transfer_agent"],
+      "catalyst_family": "generic apparent catalyst",
+      "property_model": {
+        "model_id": "generic_solution_polymer_v1",
+        "composition_basis": "wt_percent_segments",
+        "molecular_weight_model": "generic_positive_mw",
+        "viscosity_model": "generic_viscosity_proxy",
+        "thermal_model": "weighted_segment_tg",
+        "crystallization_model": "none",
+        "mooney_model": "generic_positive_proxy"
+      },
+      "validity_range": {"scope": "interface template only; requires calibration before use"}
+    },
+    {
+      "template_id": "generic_terpolymerization_apparent",
+      "monomers": ["monomer_A", "monomer_B", "monomer_C"],
+      "polymer_segments": {"monomer_A": "A", "monomer_B": "B", "monomer_C": "C"},
+      "molecular_weights": {"monomer_A": 100.0, "monomer_B": 100.0, "monomer_C": 100.0},
+      "rate_law": "r_i = k_i(T) * C_i * C_active with optional competition factors",
+      "heat_of_polymerization": {"monomer_A": -80.0, "monomer_B": -80.0, "monomer_C": -80.0},
+      "chain_transfer_agents": ["hydrogen", "chain_transfer_agent"],
+      "catalyst_family": "generic apparent catalyst",
+      "property_model": {
+        "model_id": "generic_terpolymer_apparent_v1",
+        "composition_basis": "wt_percent_segments",
+        "molecular_weight_model": "generic_positive_mw",
+        "viscosity_model": "generic_viscosity_proxy",
+        "thermal_model": "weighted_segment_tg",
+        "crystallization_model": "none",
+        "mooney_model": "generic_positive_proxy"
+      },
+      "validity_range": {"scope": "generalization scaffold; not a calibrated industrial model"}
+    }
+  ]
+}

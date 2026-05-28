@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ci:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Environment check
+        run: python scripts/dev_tasks.py check-env
+      - name: Build syntax check
+        run: python scripts/dev_tasks.py test-build
+      - name: Unit and regression tests
+        run: python scripts/dev_tasks.py test-unit
+      - name: Integration smoke
+        run: python scripts/dev_tasks.py test-integration
+      - name: UI contract smoke
+        run: python scripts/dev_tasks.py test-e2e
+
