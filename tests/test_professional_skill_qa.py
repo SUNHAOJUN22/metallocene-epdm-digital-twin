@@ -59,3 +59,12 @@ def test_word_report_qa_requires_report_content_and_tables(tmp_path: Path) -> No
 
     assert results[0].passed
     assert results[0].professional_skill == "documents"
+
+
+def test_mcp_interface_contract_qa_uses_chatgpt_apps_boundary() -> None:
+    results = professional_skill_qa.check_mcp_interface_contract()
+
+    assert len(results) == 1
+    assert results[0].passed
+    assert results[0].professional_skill == "chatgpt-apps/openai-docs"
+    assert "dry_run_heavy_task_executed" in results[0].detail

@@ -1,5 +1,12 @@
 # Continuous Improvement Log
 
+## 2026-05-28 V6.5 professional-skill and MCP interface sprint
+
+- Added `epdm_sim.mcp` as a governed, in-process MCP-style tool boundary for future scientific workflow integration. It provides explicit unit context, finite/temperature/validity/heavy-task preflight, lineage snapshots, dry-run-by-default tools and a minimal registry.
+- Extended professional skill QA so `python scripts\dev_tasks.py professional-skill-qa` covers Excel, Word, UI contract, GitHub workflow and MCP interface contract checks.
+- Verified targeted MCP/professional tests: 15 passed; full pytest: 361 passed; auto_functional_audit: 151/151 passed; function_inventory_audit: 261/261 modules imported and 1007/1007 public callable direct references; quality gate and release gate passed; Streamlit returned HTTP 200 after startup.
+- Remaining P3 priority: wrap the in-process MCP registry with a production-grade server transport, authentication, schema discovery and official OpenAI/ChatGPT Apps connector review.
+
 ## 2026-05-20 V6.5 quality sprint rerun
 
 - Re-ran the V6.5 quality sprint after the UI action usability gate was integrated.
@@ -458,5 +465,11 @@
 
 - Generated standardized documentation set.
 - Latest callable direct coverage: [{'gate': 'module_import', 'passed': True, 'detail': '254/254 modules imported'}, {'gate': 'callable_direct_reference', 'passed': True, 'detail': '972/972 public callables directly referenced'}, {'gate': 'function_matrix', 'passed': True, 'detail': '972 callable rows with UI/API/DB/file/science risk tags'}].
+- Recommended next step: work down `function_inventory_uncovered_top20.csv`.
+
+## 2026-05-28 15:13:27
+
+- Generated standardized documentation set.
+- Latest callable direct coverage: [{'gate': 'module_import', 'passed': True, 'detail': '261/261 modules imported'}, {'gate': 'callable_direct_reference', 'passed': True, 'detail': '1007/1007 public callables directly referenced'}, {'gate': 'function_matrix', 'passed': True, 'detail': '1007 callable rows with UI/API/DB/file/science risk tags'}].
 - Recommended next step: work down `function_inventory_uncovered_top20.csv`.
 

@@ -64,7 +64,7 @@ These are professional workflow skills. They extend the replacement surface for 
 | Security ownership and bus factor | `security-ownership-map` | installed, blocked by non-git folder | Requires git history; current project path is not a git repository. |
 | Production error observability | `sentry` | installed, pending Sentry CLI/auth | Requires local Sentry CLI and authentication before use. |
 | Calibration notebooks | `jupyter-notebook` | installed, pending use | Installed from market for future experiment/calibration notebooks. |
-| ChatGPT Apps integration | `chatgpt-apps` | installed, pending use | Installed from market for future MCP/widget app integration, with `openai-docs` as docs-first prerequisite. |
+| ChatGPT Apps integration | `chatgpt-apps` | interface boundary started | `epdm_sim/mcp/` now exposes a governed, dry-run-by-default tool-only interface for future MCP/widget integration; official-hosted app transport remains future work. |
 | Raster visual generation | `imagegen` | not used | No bitmap visual asset was requested; scientific plots must remain code-generated. |
 
 ## Browser Skill Result
@@ -202,6 +202,7 @@ Command result:
 - `word_report_qa` via `documents`: PASS; latest smoke Word report has nonempty paragraphs, 11 tables, 620 table text cells and risk/residual/governance content.
 - `ui_browser_contract_qa` via `browser/playwright`: PASS; UI artifacts report 15 registered pages, 18 manual actions, no missing task mappings and no heavy export actions.
 - `github_workflow_qa` via `github/yeet`: PASS; repository has GitHub origin `https://github.com/SUNHAOJUN22/metallocene-epdm-digital-twin.git` and remote `main` exists.
+- `mcp_interface_contract_qa` via `chatgpt-apps/openai-docs`: PASS; MCP-style registry loads, metadata returns without heavy tasks, invalid units are rejected and flowsheet dry-run does not execute heavy model paths.
 
 New artifacts:
 
@@ -212,3 +213,28 @@ Interpretation:
 
 - The parts that should be replaced are now replaced at the workflow level and have a repeatable command.
 - Math/physics runtime code remains repo-native by design.
+
+## 2026-05-28 MCP Interface Replacement Boundary
+
+`chatgpt-apps` and `openai-docs` are now represented in the project by a repo-native MCP-style integration layer:
+
+- `epdm_sim/mcp/schemas.py`
+- `epdm_sim/mcp/safety.py`
+- `epdm_sim/mcp/lineage.py`
+- `epdm_sim/mcp/adapters.py`
+- `epdm_sim/mcp/tools.py`
+- `epdm_sim/mcp/server.py`
+
+Actual behavior verified:
+
+- default dry-run prevents unintended heavy execution;
+- unsupported units are rejected before model entry;
+- NaN/inf and negative absolute temperature are rejected;
+- validity-envelope violations are rejected when required;
+- explicit flowsheet execution returns ResidualSystem summary rather than bypassing residual acceptance;
+- governance certificate can be read without triggering heavy simulation tasks.
+
+Not replaced:
+
+- `ResidualSystem`, flash/EOS, ODE/DAE, benchmark/evidence-chain gates and release gates remain repo-owned and test-owned.
+- A hosted MCP server transport/auth layer has not been added yet; current implementation is an in-process registry suitable for local integration tests and future app wrapping.

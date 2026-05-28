@@ -4,7 +4,7 @@ Generated from `tmp_smoke_outputs/function_matrix.csv`.
 
 ## Summary
 
-- Callable rows: 972
+- Callable rows: 1007
 - Directly referenced rows: unknown
 
 ## Module Coverage
@@ -16,12 +16,14 @@ Generated from `tmp_smoke_outputs/function_matrix.csv`.
 | epdm_sim.fluid_props | 18 | 18 | 0 |
 | epdm_sim.utils | 18 | 18 | 0 |
 | epdm_sim.conservation | 15 | 15 | 0 |
+| epdm_sim.mcp.schemas | 13 | 13 | 0 |
 | epdm_sim.equipment_3d | 12 | 12 | 0 |
 | epdm_sim.kinetics | 12 | 12 | 0 |
 | epdm_sim.calibrated_property_models | 11 | 11 | 0 |
 | epdm_sim.eos | 11 | 11 | 0 |
 | epdm_sim.reaction_templates | 11 | 11 | 0 |
 | epdm_sim.case_manager | 10 | 10 | 0 |
+| epdm_sim.mcp.tools | 10 | 10 | 0 |
 | epdm_sim.db | 9 | 9 | 0 |
 | epdm_sim.numerics | 9 | 9 | 0 |
 | epdm_sim.parameter_estimation | 9 | 9 | 0 |
@@ -54,6 +56,7 @@ Generated from `tmp_smoke_outputs/function_matrix.csv`.
 | epdm_sim.dynamic_reactor | 6 | 6 | 0 |
 | epdm_sim.estimation.residual_constrained_fit | 6 | 6 | 0 |
 | epdm_sim.io_schema | 6 | 6 | 0 |
+| epdm_sim.mcp.safety | 6 | 6 | 0 |
 | epdm_sim.model_graph | 6 | 6 | 0 |
 | epdm_sim.ode_diagnostics | 6 | 6 | 0 |
 | epdm_sim.ode_events | 6 | 6 | 0 |
@@ -144,6 +147,7 @@ Generated from `tmp_smoke_outputs/function_matrix.csv`.
 | epdm_sim.math_core.balance_laws | 3 | 3 | 0 |
 | epdm_sim.math_core.kinetic_identities | 3 | 3 | 0 |
 | epdm_sim.math_core.residuals | 3 | 3 | 0 |
+| epdm_sim.mcp.adapters | 3 | 3 | 0 |
 | epdm_sim.profile_alignment | 3 | 3 | 0 |
 | epdm_sim.property_model_bridge | 3 | 3 | 0 |
 | epdm_sim.property_model_selector | 3 | 3 | 0 |
@@ -185,6 +189,7 @@ Generated from `tmp_smoke_outputs/function_matrix.csv`.
 | epdm_sim.math_core.equations | 2 | 2 | 0 |
 | epdm_sim.math_core.model_confidence | 2 | 2 | 0 |
 | epdm_sim.math_core.residual_graph | 2 | 2 | 0 |
+| epdm_sim.mcp.server | 2 | 2 | 0 |
 | epdm_sim.model_audit_report | 2 | 2 | 0 |
 | epdm_sim.model_confidence | 2 | 2 | 0 |
 | epdm_sim.optimizer | 2 | 2 | 0 |
@@ -226,6 +231,7 @@ Generated from `tmp_smoke_outputs/function_matrix.csv`.
 | epdm_sim.fluid_core.viscosity | 1 | 1 | 0 |
 | epdm_sim.layout_3d | 1 | 1 | 0 |
 | epdm_sim.math_core.diagnostics | 1 | 1 | 0 |
+| epdm_sim.mcp.lineage | 1 | 1 | 0 |
 | epdm_sim.pages.calibration_page | 1 | 1 | 0 |
 | epdm_sim.pages.case_manager_page | 1 | 1 | 0 |
 | epdm_sim.pages.cfd_page | 1 | 1 | 0 |
@@ -714,6 +720,41 @@ Generated from `tmp_smoke_outputs/function_matrix.csv`.
 | equilibrium_constant_from_delta_g | epdm_sim.math_core.thermodynamic_identities | low |
 | gibbs_from_enthalpy_entropy | epdm_sim.math_core.thermodynamic_identities | low |
 | thermodynamic_identity_checks_dataframe | epdm_sim.math_core.thermodynamic_identities | low |
+| build_process_config_from_payload | epdm_sim.mcp.adapters | low |
+| residual_summary_from_system | epdm_sim.mcp.adapters | low |
+| tool_result_from_exception | epdm_sim.mcp.adapters | low |
+| build_lineage_snapshot | epdm_sim.mcp.lineage | low |
+| mcp_preflight_check | epdm_sim.mcp.safety | low |
+| reject_heavy_task_without_explicit_permission | epdm_sim.mcp.safety | low |
+| reject_invalid_units | epdm_sim.mcp.safety | low |
+| reject_nan_inf_input | epdm_sim.mcp.safety | low |
+| reject_negative_absolute_temperature | epdm_sim.mcp.safety | low |
+| reject_outside_validity_if_required | epdm_sim.mcp.safety | low |
+| DoeRequest | epdm_sim.mcp.schemas | low |
+| DynamicReactorRequest | epdm_sim.mcp.schemas | low |
+| FlashRequest | epdm_sim.mcp.schemas | low |
+| FlowsheetRequest | epdm_sim.mcp.schemas | low |
+| HeatBalanceRequest | epdm_sim.mcp.schemas | low |
+| LineageSnapshot | epdm_sim.mcp.schemas | low |
+| OptimizerRequest | epdm_sim.mcp.schemas | low |
+| ReportSnapshotRequest | epdm_sim.mcp.schemas | low |
+| ResidualSummary | epdm_sim.mcp.schemas | low |
+| SimulationInput | epdm_sim.mcp.schemas | low |
+| ToolResult | epdm_sim.mcp.schemas | low |
+| UnitContext | epdm_sim.mcp.schemas | low |
+| ValidityStatus | epdm_sim.mcp.schemas | low |
+| call_mcp_tool | epdm_sim.mcp.server | low |
+| mcp_tool_registry | epdm_sim.mcp.server | low |
+| generate_report_snapshot | epdm_sim.mcp.tools | low |
+| get_model_governance_certificate | epdm_sim.mcp.tools | low |
+| get_model_metadata | epdm_sim.mcp.tools | low |
+| run_dynamic_reactor | epdm_sim.mcp.tools | low |
+| run_flash_calculation | epdm_sim.mcp.tools | low |
+| run_flowsheet_simulation | epdm_sim.mcp.tools | low |
+| run_heat_balance | epdm_sim.mcp.tools | low |
+| run_residual_aware_doe | epdm_sim.mcp.tools | low |
+| run_residual_aware_optimizer | epdm_sim.mcp.tools | low |
+| validate_simulation_input | epdm_sim.mcp.tools | low |
 | build_model_audit_report | epdm_sim.model_audit_report | low |
 | ModelAuditReport | epdm_sim.model_audit_report | low |
 | build_model_confidence_card | epdm_sim.model_confidence | low |

@@ -7,6 +7,8 @@ parts that are appropriate to replace with professional workflow skills:
 - Word report inspection that mirrors the Documents skill.
 - UI contract artifact inspection that complements Browser/Playwright checks.
 - Git/GitHub readiness inspection for GitHub workflow skills.
+- MCP-style external tool contract inspection for future ChatGPT Apps/scientific
+  simulation integrations.
 
 The authoritative math/physics checks remain pytest, ResidualSystem,
 benchmarks and release_gate.py.
@@ -27,6 +29,8 @@ from openpyxl import load_workbook
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "tmp_smoke_outputs"
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 REQUIRED_EXCEL_SHEETS = [
     "residual_system",
@@ -249,6 +253,61 @@ def check_github_workflow_readiness() -> list[SkillQaResult]:
     ]
 
 
+def check_mcp_interface_contract() -> list[SkillQaResult]:
+    """Check MCP-style scientific tool contracts without running heavy tasks."""
+    try:
+        from epdm_sim.mcp import (
+            call_mcp_tool,
+            get_model_metadata,
+            mcp_tool_registry,
+            run_flowsheet_simulation,
+            validate_simulation_input,
+        )
+    except Exception as exc:
+        return [
+            SkillQaResult(
+                "mcp_interface_contract_qa",
+                "chatgpt-apps/openai-docs",
+                "epdm_sim.mcp",
+                False,
+                "P2",
+                f"MCP interface import failed: {type(exc).__name__}: {exc}",
+            )
+        ]
+
+    registry = mcp_tool_registry()
+    metadata = get_model_metadata({})
+    dry_run = run_flowsheet_simulation({"payload": {"temperature_C": 100.0, "pressure_MPa": 1.0}})
+    invalid = validate_simulation_input({"units": {"pressure": "bar"}, "payload": {"temperature_C": 80.0}})
+    unknown = call_mcp_tool("unknown_tool", {})
+    passed = (
+        bool(registry)
+        and metadata.get("status") == "ok"
+        and dry_run.get("status") == "not_run"
+        and dry_run.get("heavy_task_executed") is False
+        and invalid.get("status") == "rejected"
+        and unknown.get("status") == "rejected"
+    )
+    detail = {
+        "tool_count": len(registry),
+        "metadata_status": metadata.get("status"),
+        "dry_run_status": dry_run.get("status"),
+        "dry_run_heavy_task_executed": dry_run.get("heavy_task_executed"),
+        "invalid_unit_status": invalid.get("status"),
+        "unknown_tool_status": unknown.get("status"),
+    }
+    return [
+        SkillQaResult(
+            "mcp_interface_contract_qa",
+            "chatgpt-apps/openai-docs",
+            "epdm_sim.mcp",
+            passed,
+            "P2" if not passed else "info",
+            json.dumps(detail, ensure_ascii=False),
+        )
+    ]
+
+
 def check_professional_skill_qa() -> list[SkillQaResult]:
     """Run all professional-skill-replaced peripheral QA checks."""
     results: list[SkillQaResult] = []
@@ -256,6 +315,7 @@ def check_professional_skill_qa() -> list[SkillQaResult]:
     results.extend(check_word_report())
     results.extend(check_ui_contract_artifacts())
     results.extend(check_github_workflow_readiness())
+    results.extend(check_mcp_interface_contract())
     return results
 
 

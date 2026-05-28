@@ -907,3 +907,98 @@
 
 ### Remaining Risk
 - Full GitHub `gh`/PR automation remains pending because GitHub CLI is not installed. Runtime math/physics modules remain intentionally not replaced by generic skills.
+
+## 2026-05-28 15:06 - V6.5 automated update 28
+
+### Change
+- 修改文件：`scripts/professional_skill_qa.py`、`tests/test_professional_skill_qa.py`、`CHANGELOG.md`、`docs/V6_5_CHANGELOG.md`
+- 新增文件：`epdm_sim/mcp/__init__.py`、`epdm_sim/mcp/schemas.py`、`epdm_sim/mcp/safety.py`、`epdm_sim/mcp/lineage.py`、`epdm_sim/mcp/adapters.py`、`epdm_sim/mcp/tools.py`、`epdm_sim/mcp/server.py`、`tests/test_mcp_safety.py`、`tests/test_mcp_interface.py`、`docs/MCP_INTERFACE_DESIGN.md`、`docs/MCP_TOOL_CONTRACT.md`、`docs/MCP_SAFETY_POLICY.md`
+- 自动刷新文件：待完整 gate 后刷新 `docs/TEST_REPORT.md`、`docs/QUALITY_BASELINE.md` 和 smoke artifacts。
+
+### Reason
+- 修改原因：用户要求将适合替换的外围工作流接入专业 skill，并提供连接科学计算仿真的 MCP 类接口。本轮新增 repo-native MCP-style tool boundary，默认 dry-run，保留 ResidualSystem/release_gate 作为数学物理真值。
+
+### Mathematical / Engineering Logic
+- 守恒影响：未替换 flowsheet、flash、heat balance、recycle、ODE/DAE 或 ResidualSystem；显式运行 flowsheet 时返回 residual_summary，critical residual 不会被接受。
+- 单位影响：新增 `UnitContext` 和 `mcp_preflight_check`，对 Pa/MPa、K/C、mol/L/mol/m3、kJ/h/kW、cP/Pa.s 等入口单位进行白名单校验；错误单位、NaN/inf 和负绝对温度在执行前被拒绝。
+- residual 影响：MCP 接口默认不执行 heavy task；显式运行后通过既有 ResidualSystem 汇总 `critical_count`、`error_count` 和 score，不改变 residual severity 或 tolerance。
+- benchmark 影响：接口不替代 benchmark/evidence-chain gate；governance certificate 只读加载，不重新计算重任务。
+- validity 影响：常见 temperature/pressure/vapor_fraction 字段在 `require_validity=True` 时执行 validity preflight；outside-validity 请求返回 rejected。
+
+### Verification
+- 已运行命令：
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe -m py_compile epdm_sim\mcp\__init__.py epdm_sim\mcp\schemas.py epdm_sim\mcp\safety.py epdm_sim\mcp\lineage.py epdm_sim\mcp\adapters.py epdm_sim\mcp\tools.py epdm_sim\mcp\server.py scripts\professional_skill_qa.py`
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe -m pytest -q tests\test_mcp_safety.py tests\test_mcp_interface.py tests\test_professional_skill_qa.py`
+- 测试结果：
+  - MCP/security/professional-skill targeted tests: 15 passed，1 warning（Excel 长 sheet name negative assertion）。
+  - 验证了错误单位、NaN/inf、负绝对温度、heavy-task 未授权、outside-validity、dry-run 不执行、显式 flowsheet residual summary 和 governance certificate。
+
+### Remaining Risk
+- 当前 MCP 实现是 in-process tool registry，不是独立网络 MCP server；后续可按 OpenAI/ChatGPT Apps 最新官方接口再增加真实 server transport、auth、schema discovery 和 hosted connector 配置。
+
+## 2026-05-28 15:10 - V6.5 automated update 29
+
+### Change
+- 修改文件：`scripts/professional_skill_qa.py`、`docs/V6_5_CHANGELOG.md`
+- 新增文件：无
+- 自动刷新文件：待复测后刷新 `tmp_smoke_outputs/professional_skill_qa.json`、`tmp_smoke_outputs/professional_skill_qa.csv`
+
+### Reason
+- 修改原因：`professional_skill_qa.py` 作为脚本直接运行时没有把项目根目录加入 `sys.path`，导致新增 MCP contract QA 在 CLI 路径下无法导入 `epdm_sim`。pytest 通过但 CLI QA 失败，属于脚本入口路径问题。
+
+### Mathematical / Engineering Logic
+- 守恒影响：仅修复 QA 脚本导入路径；未修改 ResidualSystem、flowsheet、flash、heat balance、recycle、ODE/DAE 或 correction 逻辑。
+- 单位影响：未修改 MCP preflight 的单位白名单或单位换算。
+- residual 影响：未修改 residual severity、tolerance 或 acceptance；只是让 professional-skill QA 能加载 MCP 接口并检查 dry-run/invalid-unit 契约。
+- benchmark 影响：未修改 benchmark registry 或 evidence-chain。
+- validity 影响：未修改 validity envelope；MCP outside-validity preflight 保持不变。
+
+### Verification
+- 已运行命令：
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe scripts\dev_tasks.py professional-skill-qa`
+- 测试结果：
+  - `professional-skill-qa`: PASS。
+  - Excel QA、Word QA、UI contract QA、GitHub workflow QA、MCP interface contract QA 全部 PASS。
+  - MCP contract QA 结果：10 个 tool 注册，metadata ok，flowsheet dry-run not_run 且未执行 heavy task，invalid unit rejected，unknown tool rejected。
+
+### Remaining Risk
+- 无运行时代码风险；仍需执行完整 release gate 作为最终验收。
+
+## 2026-05-28 15:20 - V6.5 automated update 30
+
+### Change
+- 修改文件：`README.md`、`README.zh-CN.md`、`docs/TEST_REPORT.md`、`docs/QUALITY_BASELINE.md`、`docs/CONTINUOUS_IMPROVEMENT_LOG.md`、`docs/OPTIMIZATION_ROADMAP.md`、`docs/V6_5_MATH_RIGOR_AUDIT.md`、`docs/V6_5_CHANGELOG.md`
+- 新增文件：无
+- 自动刷新文件：`docs/FUNCTION_MATRIX.md`、`docs/TEST_REPORT.md`、`docs/QUALITY_BASELINE.md`、`docs/CONTINUOUS_IMPROVEMENT_LOG.md`、`docs/OPTIMIZATION_ROADMAP.md`
+
+### Reason
+- 修改原因：完整 quality gate、release gate 和 Streamlit HTTP 验证通过后，同步刷新 V6.5 quality sprint 文档，记录 MCP interface 与 professional-skill QA 的最终验收事实。
+
+### Mathematical / Engineering Logic
+- 守恒影响：文档刷新；未改动守恒方程、residual threshold 或 correction 行为。
+- 单位影响：记录 MCP unit preflight 结论；未改动底层单位换算。
+- residual 影响：记录 flowsheet explicit MCP run 返回 ResidualSystem summary；未改动 residual acceptance。
+- benchmark 影响：记录 professional-skill QA 不替代 benchmark/evidence-chain gate；未改动 benchmark 数据。
+- validity 影响：记录 MCP validity preflight；未改动 validity envelope。
+
+### Verification
+- 已运行命令：
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe -m pytest -q`
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe scripts\function_inventory_audit.py`
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe scripts\dev_tasks.py professional-skill-qa`
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe scripts\dev_tasks.py quality-gate`
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe scripts\dev_tasks.py generate-test-report`
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe scripts\dev_tasks.py continuous-improve`
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe scripts\release_gate.py`
+  - `Invoke-WebRequest http://127.0.0.1:8501/`
+- 测试结果：
+  - `pytest`: 361 passed，1 expected warning from Excel long-sheet negative test。
+  - `auto_functional_audit`: 151 PASS，0 FAIL。
+  - `function_inventory_audit`: 261/261 modules imported，1007/1007 public callable direct references。
+  - `professional-skill-qa`: PASS，5/5 workstreams passed。
+  - `quality-gate`: PASS。
+  - `release_gate`: PASS。
+  - Streamlit: HTTP 200 after starting headless server on port 8501。
+
+### Remaining Risk
+- P3：MCP interface 当前仍是 in-process registry；下一步应按官方 Apps/MCP transport、auth、schema discovery 和 hosted connector 要求做生产化封装。

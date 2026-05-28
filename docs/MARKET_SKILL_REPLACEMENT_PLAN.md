@@ -72,6 +72,7 @@ These newly installed skills may require restarting Codex before they appear in 
 | Excel report audit | `spreadsheets` | `excel_required_sheets`, `excel_sheet_name_compatibility_gate` |
 | Word report audit | `documents` | `word_export_nonempty` and rendered report QA |
 | Executable peripheral QA harness | `spreadsheets`, `documents`, `browser/playwright`, `github/yeet` | `python scripts\dev_tasks.py professional-skill-qa` |
+| MCP-style scientific integration contract | `chatgpt-apps`, `openai-docs` for guidance; repo-native code for runtime boundary | `tests/test_mcp_interface.py`, `tests/test_mcp_safety.py`, `python scripts\dev_tasks.py professional-skill-qa` |
 | Repro package audit | no direct market replacement; use repo gates | `report_repro_industrial_audit_gate` |
 | GitHub PR release workflow | `github` | repo-local `release_gate.py` before PR |
 | OpenAI agent/app integration design | `openai-docs` | no code change until official docs are checked |
@@ -142,6 +143,7 @@ This command does not call or replace the runtime math kernel. It checks the sam
 - Word report content/table audit, mirroring the Documents skill.
 - UI contract artifact audit, complementing Browser/Playwright inspection.
 - GitHub remote/readiness audit, complementing GitHub/yeet workflows.
+- MCP-style external tool contract audit, preparing for ChatGPT Apps/OpenAI Docs guided integration without replacing the runtime math kernel.
 
 It writes:
 
@@ -157,3 +159,14 @@ See `docs/MARKET_SKILL_ACTUAL_REPLACEMENT_AUDIT.md` for the first actual executi
 - `documents` was used to render and visually inspect the latest Word report.
 
 The audit confirmed that professional skills can replace eligible peripheral QA workflows, while runtime math/physics logic remains repo-native and release-gated.
+
+## MCP-Style Scientific Interface Boundary
+
+The project now includes `epdm_sim/mcp/` as an in-process interface for future MCP/ChatGPT Apps integration:
+
+- `schemas.py`: explicit unit and tool-result schemas.
+- `safety.py`: unit, finite, temperature, validity and heavy-task preflight.
+- `tools.py`: dry-run-by-default tool functions.
+- `server.py`: minimal registry/dispatch helper.
+
+This does not make a generic market skill the source of scientific truth. The interface exists so external tools can call the simulator through the same unit, residual and heavy-task boundaries that the UI and release gates enforce.

@@ -35,9 +35,9 @@ The latest recorded V6.5 quality sprint on the V6.4 / 0.7.4 formal baseline repo
 
 | Gate | Recorded Result |
 | --- | --- |
-| `pytest` | 346 passed |
+| `pytest` | 361 passed |
 | `auto_functional_audit` | 151/151 passed |
-| `function_inventory_audit` | 972/972 public callable direct references |
+| `function_inventory_audit` | 1007/1007 public callable direct references |
 | `release_gate` | passed |
 | Streamlit | HTTP 200 |
 
@@ -115,6 +115,7 @@ See:
 │   ├── flowsheet_core/            # material/energy closure and flowsheet helpers
 │   ├── reactor_core/              # reactor balances, heat release, polymer moments
 │   ├── fluid_core/                # density, heat capacity, viscosity, hydraulics
+│   ├── mcp/                       # governed MCP-style tool contracts
 │   ├── reporting/                 # Excel/PDF/Word report support
 │   └── pages/                     # Streamlit page modules
 ├── data/                          # registries, benchmark data, model/config data
@@ -217,6 +218,14 @@ python scripts\dev_tasks.py professional-skill-qa
 
 This command checks the artifacts that are appropriate for professional workflow-skill replacement: Excel report structure, Word report content, UI contract artifacts, and GitHub workflow readiness. It does not replace the scientific kernel gates.
 
+Run the MCP-style integration contract QA through the same professional-skill harness:
+
+```powershell
+python scripts\dev_tasks.py professional-skill-qa
+```
+
+The MCP interface in `epdm_sim/mcp/` is an in-process, tool-only boundary for future scientific workflow integrations. It defaults to `dry_run=True`, requires explicit unit context, rejects invalid units/NaN/inf/negative absolute temperature/outside-validity fields, and refuses heavy task execution unless explicitly permitted. It does not replace ResidualSystem, flash/EOS, ODE/DAE, benchmark validation, or release gates.
+
 Run the full quality and release gates:
 
 ```powershell
@@ -300,6 +309,9 @@ Primary documents:
 - [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md)
 - [docs/OPTIMIZATION_ROADMAP.md](docs/OPTIMIZATION_ROADMAP.md)
 - [docs/CONTINUOUS_IMPROVEMENT_LOG.md](docs/CONTINUOUS_IMPROVEMENT_LOG.md)
+- [docs/MCP_INTERFACE_DESIGN.md](docs/MCP_INTERFACE_DESIGN.md)
+- [docs/MCP_TOOL_CONTRACT.md](docs/MCP_TOOL_CONTRACT.md)
+- [docs/MCP_SAFETY_POLICY.md](docs/MCP_SAFETY_POLICY.md)
 
 Detailed generated/manual references:
 
@@ -331,6 +343,7 @@ Contributors should preserve the existing validation contract:
 - do not replace runtime math, physics, or validation logic with generic tooling;
 - update changelog and quality documents when changing runtime behavior or release gates.
 - use `professional-skill-qa` for peripheral UI/report/GitHub artifact checks that are suitable for professional workflow-skill replacement.
+- use `epdm_sim.mcp` only as a governed external-tool boundary; keep scientific calculations and residual acceptance inside repo-native gates.
 
 Recommended pre-push command:
 
@@ -352,3 +365,4 @@ Near-term priorities:
 - deeper nonlinear residual-loop integration into recycle, flash, and heat-balance solve paths;
 - improved report readability for wide audit tables;
 - optional CI hardening for long-running scientific gates.
+- production MCP/ChatGPT Apps transport around the current in-process `epdm_sim.mcp` registry, with auth, schema discovery and hosted connector review.

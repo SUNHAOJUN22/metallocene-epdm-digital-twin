@@ -280,3 +280,13 @@ None.
 - Usability conclusion: the UI action registry de-duplication gate reported no duplicate signatures or missing task targets; Browser navigation reached the governance, report and optimization entries, and report generation remained explicit behind user actions.
 - Boundary observation: property selector, bridge and runtime layers are deliberately staged and individually gated. Report/repro export assembly still constructs repeated audit contexts while writing many snapshots; this is a P3 export-assembly optimization candidate because current metadata, sheet and repro gates pass.
 - Browser note: DOM/navigation checks completed; viewport screenshot capture timed out on the local Streamlit page during this pass and was not used as scientific evidence.
+
+## 2026-05-28 Professional-Skill And MCP Interface Rigor Pass
+
+- Scope: added and tested a governed MCP-style interface under `epdm_sim/mcp/` for future scientific workflow integrations, while keeping the runtime math/physics kernel repo-native.
+- New math-safety checks: explicit `UnitContext`, invalid-unit rejection, recursive NaN/inf rejection, negative absolute temperature rejection, common validity-envelope rejection and heavy-task permission checks.
+- New tool-boundary checks: all scientific tool endpoints default to dry-run; dynamic/optimizer/DOE/report heavy paths refuse execution without explicit permission; flowsheet execution, when explicitly allowed, returns a bounded ResidualSystem summary.
+- Professional skill QA: `python scripts\dev_tasks.py professional-skill-qa` now checks Excel, Word, UI contract, GitHub readiness and MCP interface contract artifacts.
+- Verification facts: targeted MCP/professional tests passed with 15 tests; full pytest passed with 361 tests; auto functional audit passed 151/151; function inventory imported 261/261 modules and kept 1007/1007 public callable direct references; quality gate and release gate passed; Streamlit returned HTTP 200 after startup.
+- Math conclusion: the MCP layer did not replace ResidualSystem, flash/EOS, ODE/DAE, benchmark/evidence-chain gates or release gates. It only adds a safer external-tool boundary around them.
+- Findings: no unresolved P0/P1/P2 issue. Remaining P3 risk is that current MCP support is in-process only; production use still needs server transport, auth, schema discovery and official connector review.
