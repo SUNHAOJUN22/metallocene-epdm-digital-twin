@@ -4,7 +4,7 @@ Generated from `tmp_smoke_outputs/function_matrix.csv`.
 
 ## Summary
 
-- Callable rows: 1007
+- Callable rows: 1021
 - Directly referenced rows: unknown
 
 ## Module Coverage
@@ -16,14 +16,15 @@ Generated from `tmp_smoke_outputs/function_matrix.csv`.
 | epdm_sim.fluid_props | 18 | 18 | 0 |
 | epdm_sim.utils | 18 | 18 | 0 |
 | epdm_sim.conservation | 15 | 15 | 0 |
+| epdm_sim.aspen_bridge | 13 | 13 | 0 |
 | epdm_sim.mcp.schemas | 13 | 13 | 0 |
 | epdm_sim.equipment_3d | 12 | 12 | 0 |
 | epdm_sim.kinetics | 12 | 12 | 0 |
 | epdm_sim.calibrated_property_models | 11 | 11 | 0 |
 | epdm_sim.eos | 11 | 11 | 0 |
+| epdm_sim.mcp.tools | 11 | 11 | 0 |
 | epdm_sim.reaction_templates | 11 | 11 | 0 |
 | epdm_sim.case_manager | 10 | 10 | 0 |
-| epdm_sim.mcp.tools | 10 | 10 | 0 |
 | epdm_sim.db | 9 | 9 | 0 |
 | epdm_sim.numerics | 9 | 9 | 0 |
 | epdm_sim.parameter_estimation | 9 | 9 | 0 |
@@ -262,6 +263,19 @@ Generated from `tmp_smoke_outputs/function_matrix.csv`.
 | function_name | module | risk_level |
 | --- | --- | --- |
 | main | app | low |
+| aspen_bridge_summary | epdm_sim.aspen_bridge | low |
+| aspen_com_script_template | epdm_sim.aspen_bridge | low |
+| aspen_component_aliases | epdm_sim.aspen_bridge | low |
+| aspen_export_tables | epdm_sim.aspen_bridge | low |
+| aspen_reconciliation_dataframe | epdm_sim.aspen_bridge | low |
+| aspen_unit_context_dataframe | epdm_sim.aspen_bridge | low |
+| aspen_user_guide_dataframe | epdm_sim.aspen_bridge | low |
+| aspen_variable_mapping_dataframe | epdm_sim.aspen_bridge | low |
+| build_aspen_stream_table | epdm_sim.aspen_bridge | low |
+| export_aspen_exchange_workbook | epdm_sim.aspen_bridge | low |
+| validate_aspen_import_table | epdm_sim.aspen_bridge | low |
+| AspenExchangePackage | epdm_sim.aspen_bridge | low |
+| AspenMappingRecord | epdm_sim.aspen_bridge | low |
 | audit_trail_dataframe | epdm_sim.audit_trail | low |
 | compare_repro_package_manifest | epdm_sim.audit_trail | low |
 | create_audit_record | epdm_sim.audit_trail | low |
@@ -748,6 +762,7 @@ Generated from `tmp_smoke_outputs/function_matrix.csv`.
 | generate_report_snapshot | epdm_sim.mcp.tools | low |
 | get_model_governance_certificate | epdm_sim.mcp.tools | low |
 | get_model_metadata | epdm_sim.mcp.tools | low |
+| prepare_aspen_exchange | epdm_sim.mcp.tools | low |
 | run_dynamic_reactor | epdm_sim.mcp.tools | low |
 | run_flash_calculation | epdm_sim.mcp.tools | low |
 | run_flowsheet_simulation | epdm_sim.mcp.tools | low |

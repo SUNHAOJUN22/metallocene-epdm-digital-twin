@@ -1002,3 +1002,70 @@
 
 ### Remaining Risk
 - P3：MCP interface 当前仍是 in-process registry；下一步应按官方 Apps/MCP transport、auth、schema discovery 和 hosted connector 要求做生产化封装。
+
+## 2026-05-29 09:07 - V6.5 automated update 31
+
+### Change
+- 修改文件：`epdm_sim/reporting/excel.py`、`epdm_sim/report_consistency.py`、`epdm_sim/mcp/__init__.py`、`epdm_sim/mcp/server.py`、`epdm_sim/mcp/tools.py`、`scripts/professional_skill_qa.py`、`tests/test_mcp_interface.py`、`README.md`、`README.zh-CN.md`、`CHANGELOG.md`、`docs/V6_5_CHANGELOG.md`
+- 新增文件：`epdm_sim/aspen_bridge.py`、`tests/test_aspen_bridge.py`、`docs/ASPEN_INTEGRATION_GUIDE.md`
+- 自动刷新文件：`tmp_smoke_outputs/smoke.xlsx`、`tmp_smoke_outputs/professional_skill_qa.json`、`tmp_smoke_outputs/professional_skill_qa.csv`
+
+### Reason
+- 修改原因：用户要求增强项目与 Aspen 的联用体验。本轮新增离线 Aspen Plus/HYSYS 交换桥，提供 stream export、component alias、variable mapping、unit context、Aspen 结果导入校验、EPDM/Aspen reconciliation 和 COM script template。避免引入 Aspen COM 硬依赖，保证没有 Aspen 安装时测试仍稳定。
+
+### Mathematical / Engineering Logic
+- 守恒影响：未修改 flowsheet、flash、heat balance、recycle 或 ResidualSystem；Aspen 结果只能作为导入表进行 validation/reconciliation，大偏差不会被自动修正。
+- 单位影响：新增 `aspen_unit_context` sheet，固定 Aspen exchange 推荐单位为 C、bar、kg/h、kW 等；导入表检查 finite、nonnegative、pressure > 0、temperature > -273.15 C。
+- residual 影响：Excel 报告新增 Aspen 交换 sheets；residual acceptance 不被 Aspen 结果替代，polymer pseudo-component 非挥发边界仍由 residual system 和 reconciliation 风险提示约束。
+- benchmark 影响：Aspen 联用只生成工程对比 artifact，不提升 benchmark 置信等级，也不替代 plant/experiment/literature evidence。
+- validity 影响：Aspen 导入校验和 MCP `prepare_aspen_exchange` 保持 dry-run/explicit-run 边界，外部结果需通过 validation 后才能用于后续人工分析。
+
+### Verification
+- 已运行命令：
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe -m py_compile epdm_sim\aspen_bridge.py epdm_sim\reporting\excel.py epdm_sim\mcp\tools.py epdm_sim\mcp\server.py scripts\professional_skill_qa.py`
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe -m pytest -q tests\test_aspen_bridge.py tests\test_mcp_interface.py tests\test_professional_skill_qa.py`
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe scripts\function_inventory_audit.py`
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe scripts\performance_profile.py`
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe scripts\smoke_app.py`
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe scripts\dev_tasks.py professional-skill-qa`
+- 测试结果：
+  - Aspen/MCP/professional targeted tests：16 passed，1 expected Excel warning。
+  - function inventory：262/262 modules imported，1021/1021 public callable direct references。
+  - performance profile：PASS，report_export_excel bytes=220261。
+  - smoke app：PASS，重新生成 `tmp_smoke_outputs/smoke.xlsx`。
+  - professional-skill-qa：PASS，Excel workbook 179 sheets，Aspen required sheets present，0 formula-error tokens。
+
+### Remaining Risk
+- 当前 Aspen 联用是离线 exchange/reconciliation 层，不直接驱动 Aspen COM。生产环境接入需要现场 Aspen 许可证、case tree path 确认、COM 安全审批和 IT/工艺模型 owner 审核。
+
+## 2026-05-29 09:12 - V6.5 automated update 32
+
+### Change
+- 修改文件：`docs/TEST_REPORT.md`、`docs/QUALITY_BASELINE.md`、`docs/CONTINUOUS_IMPROVEMENT_LOG.md`、`docs/OPTIMIZATION_ROADMAP.md`、`docs/V6_5_CHANGELOG.md`
+- 新增文件：无
+- 自动刷新文件：无
+
+### Reason
+- 修改原因：`generate-test-report` 和 `continuous-improve` 会重写部分质量文档；本次补回 Aspen exchange 的测试结论、质量基线政策和后续路线图，确保文档与新接口一致。
+
+### Mathematical / Engineering Logic
+- 守恒影响：仅文档补充；未修改 flowsheet、flash、heat balance、recycle、ResidualSystem 或 correction。
+- 单位影响：记录 Aspen exchange 使用显式 C、bar、kg/h、kW 等工程单位和导入校验；未修改单位换算。
+- residual 影响：记录 Aspen reconciliation 不替代 residual acceptance，也不做 silent correction。
+- benchmark 影响：记录 Aspen 对比 artifact 不提升 benchmark/evidence confidence；未修改 benchmark 数据。
+- validity 影响：记录 site-approved Aspen round-trip 仍需 case tree、license、COM 安全和 owner 审核；未修改 validity envelope。
+
+### Verification
+- 已运行命令：
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe scripts\dev_tasks.py professional-skill-qa`
+  - `C:\Users\resj6\AppData\Local\Programs\Python\Python311\python.exe scripts\release_gate.py`
+  - `git diff --check`
+  - `Invoke-WebRequest http://127.0.0.1:8501/`
+- 测试结果：
+  - `professional-skill-qa`: PASS，Excel/Word/UI/GitHub/MCP QA 全部通过，Aspen sheets present。
+  - `release_gate`: PASS，py_compile、pytest、smoke_app、auto_functional_audit、function_inventory_audit、performance_profile、ui_e2e_smoke、ui_e2e_workflow、static_contracts 全部通过。
+  - `git diff --check`: PASS，仅有 Windows CRLF 提示，无 whitespace error。
+  - Streamlit: HTTP 200。
+
+### Remaining Risk
+- 生产级 Aspen 联动仍需现场许可证、COM 安全审批、case tree path 验证和工艺模型 owner 审核；当前提交只提供离线 exchange/reconciliation 和显式 MCP 准备接口。

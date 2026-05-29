@@ -39,6 +39,9 @@ REQUIRED_EXCEL_SHEETS = [
     "evidence_chain",
     "property_model_runtime",
     "dynamic_solver_policy",
+    "aspen_stream_export",
+    "aspen_variable_map",
+    "aspen_unit_context",
 ]
 FORMULA_ERROR_TOKENS = ("#REF!", "#DIV/0!", "#VALUE!", "#NAME?", "#N/A")
 

@@ -7,6 +7,7 @@ from typing import Any
 import pandas as pd
 
 from epdm_sim import APP_VERSION, __version__
+from epdm_sim.aspen_bridge import aspen_bridge_summary
 from epdm_sim.flowsheet import run_flowsheet
 from epdm_sim.governance_certificate import governance_certificate_dataframe, governance_certificate_summary
 from epdm_sim.residual_system import build_flowsheet_residual_system
@@ -126,6 +127,31 @@ def run_flowsheet_simulation(payload: dict[str, Any] | None = None) -> dict[str,
         )
         return _dump_tool_result(tool_result)
     except Exception as exc:  # pragma: no cover - exercised via safety tests for rejection paths
+        return _dump_tool_result(tool_result_from_exception(tool_name, exc))
+
+
+def prepare_aspen_exchange(payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Prepare Aspen exchange metadata without invoking Aspen COM automation."""
+    tool_name = "prepare_aspen_exchange"
+    request = _request_from_payload(payload, FlowsheetRequest)
+    should_run, early = _preflight_result(tool_name, request, request.task_id)
+    if not should_run:
+        return _dump_tool_result(early) if early is not None else {}
+    try:
+        config = build_process_config_from_payload(request.payload)
+        result = run_flowsheet(config)
+        return _dump_tool_result(
+            ToolResult(
+                tool_name=tool_name,
+                status="ok",
+                message="Aspen exchange tables are ready; Aspen COM was not executed.",
+                data=aspen_bridge_summary(result),
+                lineage=build_lineage_snapshot(tool_name, request),
+                heavy_task_executed=True,
+                warnings=["Aspen execution remains manual or site-approved COM automation."],
+            )
+        )
+    except Exception as exc:  # pragma: no cover
         return _dump_tool_result(tool_result_from_exception(tool_name, exc))
 
 

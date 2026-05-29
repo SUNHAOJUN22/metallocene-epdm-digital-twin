@@ -1,5 +1,13 @@
 # Continuous Improvement Log
 
+## 2026-05-29 V6.5 Aspen exchange sprint
+
+- Added an offline Aspen Plus/HYSYS exchange bridge with stream export, component alias, variable mapping, unit context, import validation, reconciliation and a site-approval-only COM script template.
+- Extended Excel report/repro QA with Aspen exchange sheets and required-sheet gates; report export still does not execute Aspen, ODE, CFD, optimizer, posterior, DOE or uncertainty heavy tasks.
+- Added `prepare_aspen_exchange` to the governed MCP tool registry as dry-run-first metadata/exchange preparation; it preserves unit preflight, explicit heavy-task boundaries and ResidualSystem/release-gate authority.
+- Verified targeted Aspen/MCP/professional tests passed, full pytest reached 367 passed, function inventory reached 262/262 imported modules and 1021/1021 direct references, quality gate passed, and professional-skill QA passed against the regenerated Excel workbook.
+- Remaining P3 priority: validate real Aspen case-tree paths and COM execution only in a licensed, site-approved environment with plant/model-owner review.
+
 ## 2026-05-28 V6.5 professional-skill and MCP interface sprint
 
 - Added `epdm_sim.mcp` as a governed, in-process MCP-style tool boundary for future scientific workflow integration. It provides explicit unit context, finite/temperature/validity/heavy-task preflight, lineage snapshots, dry-run-by-default tools and a minimal registry.
@@ -471,5 +479,11 @@
 
 - Generated standardized documentation set.
 - Latest callable direct coverage: [{'gate': 'module_import', 'passed': True, 'detail': '261/261 modules imported'}, {'gate': 'callable_direct_reference', 'passed': True, 'detail': '1007/1007 public callables directly referenced'}, {'gate': 'function_matrix', 'passed': True, 'detail': '1007 callable rows with UI/API/DB/file/science risk tags'}].
+- Recommended next step: work down `function_inventory_uncovered_top20.csv`.
+
+## 2026-05-29 09:10:43
+
+- Generated standardized documentation set.
+- Latest callable direct coverage: [{'gate': 'module_import', 'passed': True, 'detail': '262/262 modules imported'}, {'gate': 'callable_direct_reference', 'passed': True, 'detail': '1021/1021 public callables directly referenced'}, {'gate': 'function_matrix', 'passed': True, 'detail': '1021 callable rows with UI/API/DB/file/science risk tags'}].
 - Recommended next step: work down `function_inventory_uncovered_top20.csv`.
 

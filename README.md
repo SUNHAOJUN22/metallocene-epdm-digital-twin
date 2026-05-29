@@ -23,6 +23,7 @@ It is designed to support:
 - residual-aware optimization, DOE, posterior filtering, and uncertainty assessment;
 - benchmark, data-lineage, evidence-chain, and model-confidence governance;
 - Excel, Word/PDF-oriented, and reproducibility package exports;
+- Aspen Plus/HYSYS-oriented exchange tables and reconciliation helpers;
 - UI-driven workflows where heavy computations are explicitly triggered through task actions.
 
 The project is not a black-box production APC/DCS controller. It is a research and engineering decision-support platform with explicit audit trails, benchmark boundaries, and validation gates.
@@ -96,6 +97,7 @@ See:
 ### Reporting and Reproducibility
 
 - Excel report export
+- Aspen exchange sheets for stream import/export, variable mapping, unit context and reconciliation workflow
 - Word/PDF-oriented report helpers
 - reproducibility package manifest
 - report consistency checks
@@ -312,6 +314,7 @@ Primary documents:
 - [docs/MCP_INTERFACE_DESIGN.md](docs/MCP_INTERFACE_DESIGN.md)
 - [docs/MCP_TOOL_CONTRACT.md](docs/MCP_TOOL_CONTRACT.md)
 - [docs/MCP_SAFETY_POLICY.md](docs/MCP_SAFETY_POLICY.md)
+- [docs/ASPEN_INTEGRATION_GUIDE.md](docs/ASPEN_INTEGRATION_GUIDE.md)
 
 Detailed generated/manual references:
 
@@ -366,3 +369,4 @@ Near-term priorities:
 - improved report readability for wide audit tables;
 - optional CI hardening for long-running scientific gates.
 - production MCP/ChatGPT Apps transport around the current in-process `epdm_sim.mcp` registry, with auth, schema discovery and hosted connector review.
+- deeper Aspen Plus/HYSYS round-trip examples using site-approved COM automation and reviewed plant data.

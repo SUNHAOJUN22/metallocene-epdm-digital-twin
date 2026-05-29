@@ -4,6 +4,7 @@ from epdm_sim.mcp import (
     get_model_governance_certificate,
     get_model_metadata,
     mcp_tool_registry,
+    prepare_aspen_exchange,
     run_dynamic_reactor,
     run_flash_calculation,
     run_flowsheet_simulation,
@@ -22,6 +23,7 @@ def test_mcp_metadata_and_registry_are_available_without_heavy_tasks():
     registry = mcp_tool_registry()
     assert registry
     assert "run_flowsheet_simulation" in MCP_TOOL_MAP
+    assert "prepare_aspen_exchange" in MCP_TOOL_MAP
     assert call_mcp_tool("get_model_metadata", {})["status"] == "ok"
     assert call_mcp_tool("missing_tool", {})["status"] == "rejected"
 
@@ -37,6 +39,7 @@ def test_mcp_scientific_tools_default_to_dry_run_no_heavy_execution():
     payload = {"payload": {"temperature_C": 90.0, "pressure_MPa": 1.0}}
     for tool in [
         run_flowsheet_simulation,
+        prepare_aspen_exchange,
         run_flash_calculation,
         run_heat_balance,
         run_dynamic_reactor,
@@ -67,6 +70,21 @@ def test_mcp_flowsheet_explicit_run_returns_bounded_residual_summary():
     assert result["heavy_task_executed"] is True
     assert result["residual_summary"]["critical_count"] == 0
     assert 0.0 <= result["residual_summary"]["overall_score"] <= 100.0
+
+
+def test_mcp_aspen_exchange_explicit_run_prepares_metadata_without_com():
+    result = prepare_aspen_exchange(
+        {
+            "dry_run": False,
+            "run_heavy_task": True,
+            "payload": {"temperature_C": 100.0, "pressure_MPa": 1.0},
+        }
+    )
+    assert result["status"] == "ok"
+    assert result["heavy_task_executed"] is True
+    assert result["data"]["stream_rows"] > 0
+    assert result["data"]["mapping_rows"] > 0
+    assert "Aspen execution remains manual" in result["warnings"][0]
 
 
 def test_mcp_governance_certificate_is_reportable_without_heavy_task():

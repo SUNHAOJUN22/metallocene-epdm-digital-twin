@@ -79,6 +79,7 @@ from ..posterior import PosteriorResult
 from ..posterior_residual_filter import posterior_residual_filter_dataframe
 from ..constrained_window import constrained_windows_dataframe
 from ..audit_trail import AuditTrailRecord, audit_trail_dataframe, create_audit_record
+from ..aspen_bridge import aspen_bridge_summary, aspen_export_tables
 from ..workflow_wizard import workflow_status
 from ..cfd.grid_convergence import CFDGridConvergenceResult
 from ..validation_campaign import run_validation_campaign
@@ -207,6 +208,9 @@ def export_excel(
             ]
         ).to_excel(writer, sheet_name="dimensioned_inputs", index=False)
         unit_conversion_trace_dataframe().to_excel(writer, sheet_name="unit_conversion_trace", index=False)
+        for sheet_name, table in aspen_export_tables(result).items():
+            table.to_excel(writer, sheet_name=sheet_name[:31], index=False)
+        pd.DataFrame([aspen_bridge_summary(result)]).to_excel(writer, sheet_name="aspen_bridge_summary", index=False)
         pd.DataFrame([{"status": "not_run", "note": "Dynamic template ODE profile was not supplied; report export does not run heavy ODE tasks."}]).to_excel(writer, sheet_name="template_ode_rhs", index=False)
         rhs_term_schema_dataframe().to_excel(writer, sheet_name="ode_diagnostics", index=False)
         rhs_terms_diagnostics_dataframe().to_excel(writer, sheet_name="rhs_diagnostics", index=False)

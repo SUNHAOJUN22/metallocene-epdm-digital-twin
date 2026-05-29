@@ -8,6 +8,7 @@ from .tools import (
     generate_report_snapshot,
     get_model_governance_certificate,
     get_model_metadata,
+    prepare_aspen_exchange,
     run_dynamic_reactor,
     run_flash_calculation,
     run_flowsheet_simulation,
@@ -20,6 +21,7 @@ from .tools import (
 
 MCP_TOOL_MAP: dict[str, Callable[[dict[str, Any] | None], dict[str, Any]]] = {
     "get_model_metadata": get_model_metadata,
+    "prepare_aspen_exchange": prepare_aspen_exchange,
     "validate_simulation_input": validate_simulation_input,
     "run_flowsheet_simulation": run_flowsheet_simulation,
     "run_flash_calculation": run_flash_calculation,
@@ -34,12 +36,16 @@ MCP_TOOL_MAP: dict[str, Callable[[dict[str, Any] | None], dict[str, Any]]] = {
 
 def mcp_tool_registry() -> list[dict[str, Any]]:
     """Return auditable MCP-style tool metadata."""
+    dry_run_tools = {"prepare_aspen_exchange", "generate_report_snapshot"} | {
+        name for name in MCP_TOOL_MAP if name.startswith("run_")
+    }
+    heavy_permission_tools = {"generate_report_snapshot"} | {name for name in MCP_TOOL_MAP if name.startswith("run_")}
     return [
         {
             "name": name,
             "description": getattr(func, "__doc__", "").strip().splitlines()[0],
-            "default_dry_run": name.startswith("run_") or name == "generate_report_snapshot",
-            "requires_explicit_heavy_permission": name.startswith("run_") or name == "generate_report_snapshot",
+            "default_dry_run": name in dry_run_tools,
+            "requires_explicit_heavy_permission": name in heavy_permission_tools,
         }
         for name, func in sorted(MCP_TOOL_MAP.items())
     ]
